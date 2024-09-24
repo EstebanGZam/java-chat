@@ -7,7 +7,7 @@ import java.util.concurrent.ExecutorService;
 
 public class TCPServer {
 	public static final String IP = "127.0.0.1";
-	private static final int PORT = 10000;
+	public static final int PORT = 10000;
 
 	public static void main(String[] args) {
 		ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(10);

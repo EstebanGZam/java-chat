@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class ChatManager {
 	private static ChatManager instance;
-	private final BigInteger counter = BigInteger.ZERO;
+	private final BigInteger messagesID = BigInteger.ZERO;
 	private final Map<String, Socket> clientMap = new HashMap<>();
 	private final Map<BigInteger, Message> messageHistory = new HashMap<>();
 
@@ -25,12 +25,14 @@ public class ChatManager {
 		Socket socketClient = clientMap.get(receiver);
 		if (socketClient != null) {
 			messageHistory.put(
-					counter.add(BigInteger.valueOf(1)),
+					messagesID.add(BigInteger.valueOf(1)),
 					new Message(sender, receiver, message)
 			);
 
 			// Obtener el flujo de salida del socket del cliente destinatario
 			OutputStream outputStream = socketClient.getOutputStream();
+
+			// Crear un objeto PrintWriter para enviar el mensaje
 			PrintWriter writer = new PrintWriter(outputStream, true);
 
 			// Enviar el mensaje al cliente destinatario
