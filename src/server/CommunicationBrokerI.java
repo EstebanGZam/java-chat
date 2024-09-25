@@ -1,10 +1,10 @@
 package server;
 
-import java.net.Socket;
+import java.io.IOException;
 
 public interface CommunicationBrokerI {
-	// Registrar un cliente con su ID único y handler
-	boolean registerClient(String clientId, Socket clientSocket);
+	// Registrar un cliente con su ID único y socket
+	String registerClient(String clientId) throws IOException;
 
 	// Enviar mensaje a otro cliente
 	void sendMessage(String fromClientId, String toClientId, String message);

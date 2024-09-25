@@ -7,7 +7,7 @@ import java.net.Socket;
 
 import server.CommunicationBroker;
 import server.CommunicationBrokerI;
-import server.TCPServer;
+import server.Server;
 
 public class Client {
 	private Socket socket;
@@ -51,7 +51,7 @@ public class Client {
 
 
 	private void initializeConnection() throws IOException {
-		this.socket = new Socket(TCPServer.IP, TCPServer.PORT);
+		this.socket = new Socket(Server.IP, Server.PORT);
 		communicationBroker = new CommunicationBroker(this.socket);
 		System.out.println("\nConexión exitosa.");
 	}
@@ -61,20 +61,20 @@ public class Client {
 	}
 
 	private void createUsername() {
-		System.out.print("Introduce tu nombre de usuario:");
+		System.out.print("\nIntroduce tu nombre de usuario: ");
 		boolean registered = false;
 		String username;
 		while (!registered) {
+			String response;
 			try {
 				username = reader.readLine();
+				response = communicationBroker.registerClient(username);
 			} catch (IOException e) {
-				System.out.println("Error al leer el nombre de usuario.");
+				System.out.print("\n" + "Error al intentar registrar el usuario.");
 				return;
 			}
-			registered = communicationBroker.registerClient(username, this.socket);
-			if (!registered) {
-				System.out.println("\nEl nombre de usuario ya está en uso. Introduce otro:");
-			}
+			System.out.print("\n" + response);
+			if (response.startsWith("Bienvenido")) registered = true;
 		}
 	}
 

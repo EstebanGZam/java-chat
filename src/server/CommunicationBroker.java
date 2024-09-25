@@ -10,9 +10,9 @@ public class CommunicationBroker implements CommunicationBrokerI {
 
 	private Socket clientSocket;
 	// Lee la información que llega del socket
-	private BufferedReader socketReader;
+	private final BufferedReader socketReader;
 	// Escribe información en el socket
-	private PrintWriter writer;
+	private final PrintWriter writer;
 
 
 	public CommunicationBroker(Socket clientSocket) throws IOException {
@@ -30,8 +30,9 @@ public class CommunicationBroker implements CommunicationBrokerI {
 	}
 
 	@Override
-	public boolean registerClient(String clientId, Socket clientSocket) {
-		return false;
+	public String registerClient(String clientId) throws IOException {
+		writer.println(clientId);
+		return socketReader.readLine();
 	}
 
 	@Override

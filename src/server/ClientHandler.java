@@ -7,19 +7,15 @@ import java.net.SocketException;
 
 public class ClientHandler implements Runnable {
 
-	private Socket socket;
+	private final Socket socket;
 	private final ChatManager chatManager = ChatManager.getInstance();
-	private PrintWriter writer;
-	private BufferedReader reader;
+	private final PrintWriter writer;
+	private final BufferedReader reader;
 
-	public ClientHandler(Socket socket) {
-		try {
-			this.socket = socket;
-			writer = new PrintWriter(socket.getOutputStream(), true);
-			reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		} catch (IOException io) {
-			closeEveryThing(this.socket, this.reader, this.writer);
-		}
+	public ClientHandler(Socket socket, BufferedReader reader, PrintWriter writer) {
+		this.socket = socket;
+		this.reader = reader;
+		this.writer = writer;
 	}
 
 	@Override
@@ -61,7 +57,7 @@ public class ClientHandler implements Runnable {
 
 		writer.println("Bienvenido/a al chat " + username + "!");
 
-		chatManager.registerClient(username, this.socket);
+//		chatManager.registerClient(username, this.socket);
 
 		return username;
 	}
