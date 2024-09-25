@@ -10,23 +10,47 @@ import server.CommunicationBrokerI;
 import server.Server;
 
 public class Client {
+	private String username;
 	private Socket socket;
 	// Entrada de información (por consola)
 	private final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 	// Lector de entrada de consola
 	private CommunicationBrokerI communicationBroker;
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		Client client = new Client();
 
 		client.connectToServer();
 		if (client.isConnected()) {
 			client.createUsername();
 			client.receiveMessages();
+			client.displayInstructions();
+			client.awaitAndProcessCommands();
 		} else {
 			System.out.println("\nNo se pudo establecer la conexión con el servidor.");
 		}
 
+	}
+
+	private void awaitAndProcessCommands() throws IOException {
+		String instruction = "";
+		while (!instruction.equals("exit")) {
+			System.out.print(username + " >>>  ");
+			instruction = reader.readLine();
+			processInstruction(instruction);
+		}
+	}
+
+	public void displayInstructions() {
+		System.out.println("----------------------------------------------------------------------------------------------");
+		System.out.println("Para enviar un mensaje a todos, solo escribe el mensaje y presiona Enter.");
+		System.out.println("Para enviar un mensaje privado a otro cliente, escribe: /msg <usuario_destino> <mensaje>");
+		System.out.println("Para salir del chat, escribe: 'exit'");
+		System.out.println("----------------------------------------------------------------------------------------------");
+	}
+
+	public void processInstruction(String instruction) {
+		communicationBroker.processInstruction(this.username, instruction);
 	}
 
 	private void receiveMessages() {
@@ -34,14 +58,24 @@ public class Client {
 			while (true) {
 				try {
 					String message = communicationBroker.receiveMessage();
-					System.out.println(message);
+					System.out.println("\n" + message);
 				} catch (IOException e) {
-					System.out.println("Error al recibir mensajes del servidor.");
-					break;
+					System.out.println("Error: Ocurrió una desconexión con el servidor.");
+					closeProgram();
 				}
 			}
 		});
 		receiver.start();
+	}
+
+	private void closeProgram() {
+		try {
+			reader.close();
+			socket.close();
+		} catch (IOException e) {
+			System.out.println("Error al cerrar el programa.");
+		}
+		System.exit(0);
 	}
 
 	private void connectToServer() {
@@ -89,7 +123,10 @@ public class Client {
 				return;
 			}
 			System.out.println("\n" + response);
-			if (response.startsWith("Bienvenido")) registered = true;
+			if (response.startsWith("Bienvenido")) {
+				this.username = username;
+				registered = true;
+			}
 		}
 	}
 

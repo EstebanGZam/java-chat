@@ -1,67 +1,61 @@
 package server;
 
 import java.io.*;
-import java.net.Socket;
-import java.net.SocketException;
 
 
 public class ClientHandler implements Runnable {
 	private final ChatManager chatManager = ChatManager.getInstance();
-	private final Socket socket;
+	private final String username;
 	private final PrintWriter writer;
 	private final BufferedReader reader;
-	private final String username;
 
-	public ClientHandler(String username, Socket socket, BufferedReader reader, PrintWriter writer) {
+	public ClientHandler(String username, BufferedReader reader, PrintWriter writer) {
 		this.username = username;
-		this.socket = socket;
 		this.reader = reader;
 		this.writer = writer;
 	}
 
 	@Override
 	public void run() {
-		try {
-			showInstructions();
+		receiveMessage();
+	}
 
-			String instruction;
-			while ((instruction = reader.readLine()) != null) {
-				if (instruction.startsWith("/msg")) {
-					String[] parts = instruction.split(" ");
-					String receiver = parts[1];
-					String message = instruction.substring(parts[0].length() + parts[1].length() + 2);
-					chatManager.sendTextMessage(username, receiver, message);
-					writer.println(message);
-				}
+	public void receiveMessage() {
+		String message;
+		try {
+			while ((message = reader.readLine()) != null) {
+				processMessage(message);
 			}
-			writer.println("Conexión finalizada");
-
-			closeEveryThing(this.socket, this.reader, this.writer);
-
-		} catch (SocketException e) {
-			closeEveryThing(this.socket, this.reader, this.writer);
-			writer.println("Conexión finalizada.");
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			System.out.println("'" + this.username + "' se ha desconectado del chat.");
 		}
 	}
 
-	public void showInstructions() {
-		writer.println("----------------------------------------------------------------------------------------------");
-		writer.println("Para enviar un mensaje a todos, solo escribe el mensaje y presiona Enter.");
-		writer.println("Para enviar un mensaje privado a otro cliente, escribe: /msg <usuario_destino> <mensaje>");
-		writer.println("----------------------------------------------------------------------------------------------");
-		writer.flush();
+	private void processMessage(String message) {
+		if (message.startsWith("/msg")) {
+			String[] parts = message.split("<<<<<");
+			String instruction = parts[0];
+			String sender = parts[1];
+			sendMessageToAnotherClient(sender, instruction);
+		}
 	}
 
-	public void closeEveryThing(Socket clientSocket, BufferedReader reader, PrintWriter writer) {
-		try {
-			if (reader != null) reader.close();
-			if (writer != null) writer.close();
-			if (clientSocket != null) clientSocket.close();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+	private void sendMessageToAnotherClient(String sender, String instruction) {
+		String[] parts = instruction.split(" ");
+		String receiver = parts[1];
+		String message = instruction.substring(parts[0].length() + parts[1].length() + 2);
+		if (!chatManager.clientExists(receiver)) {
+			sendResponse("El usuario '" + receiver + "' no existe.");
+		} else {
+			ClientHandler receiverClientHandler = chatManager.getClient(receiver);
+			receiverClientHandler.sendResponse(sender + ": " + message);
+			sendResponse("Mensaje enviado a '" + receiver + "'.");
+			chatManager.saveMessage(sender, receiver, message);
 		}
+	}
+
+	public void sendResponse(String message) {
+		writer.println(message);
 	}
 
 }

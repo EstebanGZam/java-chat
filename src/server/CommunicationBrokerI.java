@@ -9,7 +9,10 @@ public interface CommunicationBrokerI {
 	// Recibir mensajes del servidor
 	String receiveMessage() throws IOException;
 
+	// Procesar instrucción
+	void processInstruction(String sourceUser, String instruction);
+
 	// Enviar mensaje a otro cliente
-	void sendMessage(String fromClientId, String toClientId, String message);
+	void sendMessageToAnotherClient(String instruction);
 }
 

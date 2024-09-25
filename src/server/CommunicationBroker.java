@@ -38,6 +38,15 @@ public class CommunicationBroker implements CommunicationBrokerI {
 	}
 
 	@Override
-	public void sendMessage(String fromClientId, String toClientId, String message) {
+	public void processInstruction(String sourceUser, String instruction) {
+		if (instruction.startsWith("/msg")) {
+			sendMessageToAnotherClient(instruction + "<<<<<" + sourceUser);
+		}
 	}
+
+	@Override
+	public void sendMessageToAnotherClient(String instruction) {
+		writer.println(instruction);
+	}
+
 }
