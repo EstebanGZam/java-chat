@@ -43,4 +43,10 @@ public class ChatManager {
 	public void unregisterClient(String username) {
 		this.clients.remove(username);
 	}
+
+	public List<Message> getMessageHistory() {
+		// Retorna una lista de los mensajes en el orden en que fueron guardados
+		return new ArrayList<>(messageHistory.values());
+	}
+
 }

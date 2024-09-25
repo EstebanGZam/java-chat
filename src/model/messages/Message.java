@@ -27,27 +27,20 @@ public class Message {
 		this.audio = audio;
 	}
 
-	public String getSender() {
-		return sender;
-	}
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("De: ").append(sender)
+				.append(", A: ").append(receiver)
+				.append(", Fecha: ").append(sentDate)
+				.append(", Tipo: ").append(type);
 
-	public String getReceiver() {
-		return receiver;
-	}
+		if (type == MessageType.TEXT) {
+			sb.append(", Mensaje: ").append(textContent != null ? textContent : "[sin contenido]");
+		} else if (type == MessageType.AUDIO) {
+			sb.append(", Audio: ").append(audio != null ? audio.toString() : "[sin audio]");
+		}
 
-	public LocalDateTime getSentDate() {
-		return sentDate;
-	}
-
-	public MessageType getType() {
-		return type;
-	}
-
-	public String getTextContent() {
-		return textContent;
-	}
-
-	public Audio getAudio() {
-		return audio;
+		return sb.toString();
 	}
 }

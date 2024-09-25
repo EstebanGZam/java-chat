@@ -1,8 +1,10 @@
 package model.server;
 
 import model.manager.ChatManager;
+import model.messages.Message;
 
 import java.io.*;
+import java.util.List;
 
 
 public class ClientHandler implements Runnable {
@@ -40,7 +42,13 @@ public class ClientHandler implements Runnable {
 			String instruction = parts[0];
 			String sender = parts[1];
 			sendMessageToAnotherClient(sender, instruction);
+		} else if (message.equals("/getHistory")) {
+			showHistory();
 		}
+	}
+
+	public void sendResponse(String message) {
+		writer.println(message);
 	}
 
 	private void sendMessageToAnotherClient(String sender, String instruction) {
@@ -57,8 +65,11 @@ public class ClientHandler implements Runnable {
 		}
 	}
 
-	public void sendResponse(String message) {
-		writer.println(message);
+	private void showHistory() {
+		List<Message> messages = chatManager.getMessageHistory();
+		for (Message savedMessage : messages) {
+			sendResponse(savedMessage.toString());
+		}
 	}
 
 }

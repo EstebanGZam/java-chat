@@ -46,7 +46,8 @@ public class Client {
 		System.out.println("----------------------------------------------------------------------------------------------");
 		System.out.println("Para enviar un mensaje a todos, solo escribe el mensaje y presiona Enter.");
 		System.out.println("Para enviar un mensaje privado a otro cliente, escribe: /msg <usuario_destino> <mensaje>");
-		System.out.println("Para salir del chat, escribe: 'exit'");
+		System.out.println("Para salir ver el historial de mensajes, escribe: /msgHistory");
+		System.out.println("Para salir del chat, escribe: exit");
 		System.out.println("----------------------------------------------------------------------------------------------");
 	}
 
@@ -67,16 +68,6 @@ public class Client {
 			}
 		});
 		receiver.start();
-	}
-
-	private void closeProgram() {
-		try {
-			reader.close();
-			socket.close();
-		} catch (IOException e) {
-			System.out.println("Error al cerrar el programa.");
-		}
-		System.exit(0);
 	}
 
 	private void connectToServer() {
@@ -129,6 +120,16 @@ public class Client {
 				registered = true;
 			}
 		}
+	}
+
+	private void closeProgram() {
+		try {
+			reader.close();
+			socket.close();
+		} catch (IOException e) {
+			System.out.println("Error al cerrar el programa.");
+		}
+		System.exit(0);
 	}
 
 }

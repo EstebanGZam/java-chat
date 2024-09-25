@@ -14,5 +14,8 @@ public interface CommunicationBrokerI {
 
 	// Enviar mensaje a otro cliente
 	void sendMessageToAnotherClient(String instruction);
+
+	// Mostrar el historial de mensajes
+	void showHistory(String instruction) throws IOException;
 }
 

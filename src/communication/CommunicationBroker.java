@@ -41,11 +41,18 @@ public class CommunicationBroker implements CommunicationBrokerI {
 	public void processInstruction(String sourceUser, String instruction) {
 		if (instruction.startsWith("/msg")) {
 			sendMessageToAnotherClient(instruction + "<<<<<" + sourceUser);
+		} else if (instruction.equals("/getHistory")) {
+			showHistory(instruction);
 		}
 	}
 
 	@Override
 	public void sendMessageToAnotherClient(String instruction) {
+		writer.println(instruction);
+	}
+
+	@Override
+	public void showHistory(String instruction) {
 		writer.println(instruction);
 	}
 
