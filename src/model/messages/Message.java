@@ -1,4 +1,4 @@
-package server;
+package model.messages;
 
 import java.time.LocalDateTime;
 

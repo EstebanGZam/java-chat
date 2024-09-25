@@ -1,4 +1,6 @@
-package server;
+package model.server;
+
+import model.manager.ChatManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;

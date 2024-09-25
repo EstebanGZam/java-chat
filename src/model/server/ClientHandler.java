@@ -1,4 +1,6 @@
-package server;
+package model.server;
+
+import model.manager.ChatManager;
 
 import java.io.*;
 
@@ -28,6 +30,7 @@ public class ClientHandler implements Runnable {
 			}
 		} catch (IOException e) {
 			System.out.println("'" + this.username + "' se ha desconectado del chat.");
+			chatManager.unregisterClient(this.username);
 		}
 	}
 
