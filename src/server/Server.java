@@ -28,7 +28,8 @@ public class Server {
 				Socket clientSocket = server.acceptNewClient(serverSocket);
 				server.registerClient(clientSocket);
 			}
-		} catch (IOException _) {
+		} catch (IOException e) {
+			System.err.println("Error: " + e.getMessage());
 		}
 	}
 
@@ -43,15 +44,15 @@ public class Server {
 	public synchronized void registerClient(Socket clientSocket) throws IOException {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 		PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
-		String clientId = reader.readLine();
+		String username = reader.readLine();
 
-		while (this.chatManager.clientExists(clientId)) {
+		while (this.chatManager.clientExists(username)) {
 			writer.println("El nombre de usuario ya está en uso.");
-			clientId = reader.readLine();
+			username = reader.readLine();
 		}
-		writer.println("Bienvenido/a al chat " + clientId + "!");
-		ClientHandler clientHandler = new ClientHandler(clientSocket, reader, writer);
-		this.chatManager.registerClient(clientId, clientHandler);
+		writer.println("Bienvenido/a al chat " + username + "!");
+		ClientHandler clientHandler = new ClientHandler(username, clientSocket, reader, writer);
+		this.chatManager.registerClient(username, clientHandler);
 		pool.execute(clientHandler);
 	}
 

@@ -7,8 +7,6 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 public class CommunicationBroker implements CommunicationBrokerI {
-
-	private Socket clientSocket;
 	// Lee la información que llega del socket
 	private final BufferedReader socketReader;
 	// Escribe información en el socket
@@ -16,7 +14,6 @@ public class CommunicationBroker implements CommunicationBrokerI {
 
 
 	public CommunicationBroker(Socket clientSocket) throws IOException {
-		this.clientSocket = clientSocket;
 		socketReader = initReader(clientSocket);
 		writer = initWriter(clientSocket);
 	}
@@ -30,8 +27,13 @@ public class CommunicationBroker implements CommunicationBrokerI {
 	}
 
 	@Override
-	public String registerClient(String clientId) throws IOException {
-		writer.println(clientId);
+	public String registerClient(String username) throws IOException {
+		writer.println(username);
+		return socketReader.readLine();
+	}
+
+	@Override
+	public String receiveMessage() throws IOException {
 		return socketReader.readLine();
 	}
 

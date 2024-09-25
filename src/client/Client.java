@@ -22,10 +22,26 @@ public class Client {
 		client.connectToServer();
 		if (client.isConnected()) {
 			client.createUsername();
+			client.receiveMessages();
 		} else {
 			System.out.println("\nNo se pudo establecer la conexión con el servidor.");
 		}
 
+	}
+
+	private void receiveMessages() {
+		Thread receiver = new Thread(() -> {
+			while (true) {
+				try {
+					String message = communicationBroker.receiveMessage();
+					System.out.println(message);
+				} catch (IOException e) {
+					System.out.println("Error al recibir mensajes del servidor.");
+					break;
+				}
+			}
+		});
+		receiver.start();
 	}
 
 	private void connectToServer() {
@@ -49,11 +65,10 @@ public class Client {
 		}
 	}
 
-
 	private void initializeConnection() throws IOException {
 		this.socket = new Socket(Server.IP, Server.PORT);
 		communicationBroker = new CommunicationBroker(this.socket);
-		System.out.println("\nConexión exitosa.");
+		System.out.println("\nConexión exitosa!");
 	}
 
 	private boolean isConnected() {
@@ -70,10 +85,10 @@ public class Client {
 				username = reader.readLine();
 				response = communicationBroker.registerClient(username);
 			} catch (IOException e) {
-				System.out.print("\n" + "Error al intentar registrar el usuario.");
+				System.out.println("\n" + "Error al intentar registrar el usuario.");
 				return;
 			}
-			System.out.print("\n" + response);
+			System.out.println("\n" + response);
 			if (response.startsWith("Bienvenido")) registered = true;
 		}
 	}

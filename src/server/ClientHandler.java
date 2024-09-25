@@ -6,13 +6,14 @@ import java.net.SocketException;
 
 
 public class ClientHandler implements Runnable {
-
-	private final Socket socket;
 	private final ChatManager chatManager = ChatManager.getInstance();
+	private final Socket socket;
 	private final PrintWriter writer;
 	private final BufferedReader reader;
+	private final String username;
 
-	public ClientHandler(Socket socket, BufferedReader reader, PrintWriter writer) {
+	public ClientHandler(String username, Socket socket, BufferedReader reader, PrintWriter writer) {
+		this.username = username;
 		this.socket = socket;
 		this.reader = reader;
 		this.writer = writer;
@@ -21,8 +22,6 @@ public class ClientHandler implements Runnable {
 	@Override
 	public void run() {
 		try {
-			String username = registerClient();
-
 			showInstructions();
 
 			String instruction;
@@ -45,21 +44,6 @@ public class ClientHandler implements Runnable {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	private String registerClient() throws IOException {
-		String username = reader.readLine();
-
-		while (chatManager.clientExists(username)) {
-			writer.println("El nombre de usuario ya está en uso. Por favor, elige otro.");
-			username = reader.readLine();
-		}
-
-		writer.println("Bienvenido/a al chat " + username + "!");
-
-//		chatManager.registerClient(username, this.socket);
-
-		return username;
 	}
 
 	public void showInstructions() {
