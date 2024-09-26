@@ -53,7 +53,7 @@ public class Server {
 			username = reader.readLine();
 		}
 		writer.println("Bienvenido/a al chat " + username + "!");
-		ClientHandler clientHandler = new ClientHandler(username, reader, writer);
+		ClientHandler clientHandler = new ClientHandler(username, reader, writer, clientSocket);
 		this.chatManager.registerClient(username, clientHandler);
 		pool.execute(clientHandler);
 	}

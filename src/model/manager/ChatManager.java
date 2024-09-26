@@ -1,5 +1,6 @@
 package model.manager;
 
+import model.messages.Audio;
 import model.messages.Message;
 import model.server.ClientHandler;
 
@@ -16,7 +17,8 @@ public class ChatManager {
 	private final Map<BigInteger, Message> messageHistory = new HashMap<>();
 
 	public static ChatManager getInstance() {
-		if (instance == null) instance = new ChatManager();
+		if (instance == null)
+			instance = new ChatManager();
 		return instance;
 	}
 
@@ -35,9 +37,8 @@ public class ChatManager {
 	public void saveMessage(String sender, String receiver, String message) {
 		Message newMessage = new Message(sender, receiver, message);
 		messageHistory.put(
-				messagesID = messagesID.add(BigInteger.ONE),  // Incremento el ID antes de guardar
-				newMessage
-		);
+				messagesID = messagesID.add(BigInteger.ONE), // Incremento el ID antes de guardar
+				newMessage);
 	}
 
 	public void unregisterClient(String username) {
@@ -47,6 +48,13 @@ public class ChatManager {
 	public List<Message> getMessageHistory() {
 		// Retorna una lista de los mensajes en el orden en que fueron guardados
 		return new ArrayList<>(messageHistory.values());
+	}
+
+	public void saveAudio(String sender, String receiver, Audio audio) {
+		Message newMessage = new Message(sender, receiver, audio);
+		messageHistory.put(
+				messagesID = messagesID.add(BigInteger.ONE), // Incremento el ID antes de guardar
+				newMessage);
 	}
 
 }

@@ -12,7 +12,6 @@ public class CommunicationBroker implements CommunicationBrokerI {
 	// Escribe información en el socket
 	private final PrintWriter writer;
 
-
 	public CommunicationBroker(Socket clientSocket) throws IOException {
 		socketReader = initReader(clientSocket);
 		writer = initWriter(clientSocket);
@@ -43,6 +42,12 @@ public class CommunicationBroker implements CommunicationBrokerI {
 			sendMessageToAnotherClient(instruction + "<<<<<" + sourceUser);
 		} else if (instruction.equals("/getHistory")) {
 			showHistory(instruction);
+		} else if (instruction.equals("/record")) {
+			startRecordingAudio(instruction);
+		} else if (instruction.startsWith("/stop-audio")) {
+			stopRecordingAudio();
+		} else if (instruction.startsWith("/send-audio")) {
+			sendAudio(instruction + "<<<<<" + sourceUser);
 		}
 	}
 
@@ -53,6 +58,19 @@ public class CommunicationBroker implements CommunicationBrokerI {
 
 	@Override
 	public void showHistory(String instruction) {
+		writer.println(instruction);
+	}
+
+	public void startRecordingAudio(String instruction) {
+		writer.println("Grabando audio...");
+		writer.println(instruction);
+	}
+
+	public void stopRecordingAudio() {
+		writer.println("Deteniendo grabación de audio");
+	}
+
+	public void sendAudio(String instruction) {
 		writer.println(instruction);
 	}
 

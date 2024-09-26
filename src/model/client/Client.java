@@ -43,12 +43,17 @@ public class Client {
 	}
 
 	public void displayInstructions() {
-		System.out.println("----------------------------------------------------------------------------------------------");
+		System.out.println(
+				"----------------------------------------------------------------------------------------------");
 		System.out.println("Para enviar un mensaje a todos, solo escribe el mensaje y presiona Enter.");
 		System.out.println("Para enviar un mensaje privado a otro cliente, escribe: /msg <usuario_destino> <mensaje>");
 		System.out.println("Para salir ver el historial de mensajes, escribe: /msgHistory");
+		System.out.println("Para grabar un mensaje de audio, escribe: /record <nombre_audio>");
+		System.out.println("Para detener la grabación de audio, escribe: /stop-audio");
+		System.out.println("Para enviar un mensaje de audio, escribe: /send-audio <nombre_audio> <usuario_destino>");
 		System.out.println("Para salir del chat, escribe: exit");
-		System.out.println("----------------------------------------------------------------------------------------------");
+		System.out.println(
+				"----------------------------------------------------------------------------------------------");
 	}
 
 	private void connectToServer() {
@@ -62,9 +67,9 @@ public class Client {
 				retryCount++;
 				System.out.print(".");
 				try {
-					Thread.sleep(retryDelay);  // Espera de 1 segundo antes de reintentar
+					Thread.sleep(retryDelay); // Espera de 1 segundo antes de reintentar
 				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();  // Manejar la interrupción correctamente
+					Thread.currentThread().interrupt(); // Manejar la interrupción correctamente
 					System.out.println("\nProceso de conexión interrumpido.");
 					return;
 				}
@@ -139,5 +144,12 @@ public class Client {
 		receiver.start();
 	}
 
+	public Socket getSocket() {
+		return socket;
+	}
+
+	public String getUsername() {
+		return username;
+	}
 
 }
