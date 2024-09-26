@@ -35,7 +35,7 @@ public class Client {
 	private void awaitAndProcessCommands() throws IOException {
 		String instruction = "";
 		while (!instruction.equals("exit")) {
-			displayCursor();
+			showConsoleCursor();
 			instruction = reader.readLine();
 			processInstruction(instruction);
 		}
@@ -49,26 +49,6 @@ public class Client {
 		System.out.println("Para salir ver el historial de mensajes, escribe: /msgHistory");
 		System.out.println("Para salir del chat, escribe: exit");
 		System.out.println("----------------------------------------------------------------------------------------------");
-	}
-
-	public void processInstruction(String instruction) {
-		communicationBroker.processInstruction(this.username, instruction);
-	}
-
-	private void receiveMessages() {
-		Thread receiver = new Thread(() -> {
-			while (true) {
-				try {
-					String message = communicationBroker.receiveMessage();
-					System.out.println("\n" + message);
-					displayCursor();
-				} catch (IOException e) {
-					System.out.println("Error: Ocurrió una desconexión con el servidor.");
-					closeProgram();
-				}
-			}
-		});
-		receiver.start();
 	}
 
 	private void connectToServer() {
@@ -115,7 +95,7 @@ public class Client {
 				System.out.println("\n" + "Error al intentar registrar el usuario.");
 				return;
 			}
-			System.out.println("\n" + response);
+			System.out.println(response);
 			if (response.startsWith("Bienvenido")) {
 				this.username = username;
 				registered = true;
@@ -133,8 +113,31 @@ public class Client {
 		System.exit(0);
 	}
 
-	private void displayCursor() {
+	private void showConsoleCursor() {
 		System.out.print(username + " >>>  ");
 	}
+
+	public void processInstruction(String instruction) {
+		communicationBroker.processInstruction(this.username, instruction);
+	}
+
+	private void receiveMessages() {
+		Thread receiver = new Thread(() -> {
+			boolean running = true;
+			while (running) {
+				try {
+					String message = communicationBroker.receiveMessage();
+					System.out.println(message);
+					showConsoleCursor();
+				} catch (IOException e) {
+					System.out.println("Error: Ocurrió una desconexión con el servidor.");
+					running = false;
+					closeProgram();
+				}
+			}
+		});
+		receiver.start();
+	}
+
 
 }

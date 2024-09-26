@@ -57,9 +57,11 @@ public class ClientHandler implements Runnable {
 		String message = instruction.substring(parts[0].length() + parts[1].length() + 2);
 		if (!chatManager.clientExists(receiver)) {
 			sendResponse("El usuario '" + receiver + "' no existe.");
+		} else if (receiver.equals(sender)) {
+			sendResponse("No puedes enviarte mensajes a ti mismo.");
 		} else {
 			ClientHandler receiverClientHandler = chatManager.getClient(receiver);
-			receiverClientHandler.sendResponse("\n" + sender + " >>>  " + message);
+			receiverClientHandler.sendResponse(sender + " >>>  " + message);
 			sendResponse("Mensaje enviado a '" + receiver + "'.");
 			chatManager.saveMessage(sender, receiver, message);
 		}
