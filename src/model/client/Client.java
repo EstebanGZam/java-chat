@@ -1,13 +1,13 @@
 package model.client;
 
+import communication.CommunicationBroker;
+import communication.CommunicationBrokerI;
+import model.server.Server;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
-
-import communication.CommunicationBroker;
-import communication.CommunicationBrokerI;
-import model.server.Server;
 
 public class Client {
 	private String username;
@@ -35,7 +35,7 @@ public class Client {
 	private void awaitAndProcessCommands() throws IOException {
 		String instruction = "";
 		while (!instruction.equals("exit")) {
-			System.out.print(username + " >>>  ");
+			displayCursor();
 			instruction = reader.readLine();
 			processInstruction(instruction);
 		}
@@ -61,6 +61,7 @@ public class Client {
 				try {
 					String message = communicationBroker.receiveMessage();
 					System.out.println("\n" + message);
+					displayCursor();
 				} catch (IOException e) {
 					System.out.println("Error: Ocurrió una desconexión con el servidor.");
 					closeProgram();
@@ -130,6 +131,10 @@ public class Client {
 			System.out.println("Error al cerrar el programa.");
 		}
 		System.exit(0);
+	}
+
+	private void displayCursor() {
+		System.out.print(username + " >>>  ");
 	}
 
 }

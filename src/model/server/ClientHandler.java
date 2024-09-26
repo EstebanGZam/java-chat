@@ -59,7 +59,7 @@ public class ClientHandler implements Runnable {
 			sendResponse("El usuario '" + receiver + "' no existe.");
 		} else {
 			ClientHandler receiverClientHandler = chatManager.getClient(receiver);
-			receiverClientHandler.sendResponse(sender + ": " + message);
+			receiverClientHandler.sendResponse("\n" + sender + " >>>  " + message);
 			sendResponse("Mensaje enviado a '" + receiver + "'.");
 			chatManager.saveMessage(sender, receiver, message);
 		}
