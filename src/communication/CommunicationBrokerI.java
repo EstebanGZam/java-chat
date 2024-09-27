@@ -18,4 +18,3 @@ public interface CommunicationBrokerI {
 	// Mostrar el historial de mensajes
 	void showHistory(String instruction) throws IOException;
 }
-

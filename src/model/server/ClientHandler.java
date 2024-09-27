@@ -17,13 +17,14 @@ public class ClientHandler implements Runnable {
 	private final String username;
 	private final PrintWriter writer;
 	private final BufferedReader reader;
-	private final AudioRecorder audioRecorder = new AudioRecorder();
+	private final AudioRecorder audioRecorder;
 	private final Socket clientSocket;
 
 	public ClientHandler(String username, BufferedReader reader, PrintWriter writer, Socket clientSocket) {
 		this.username = username;
 		this.reader = reader;
 		this.writer = writer;
+		this.audioRecorder = new AudioRecorder();
 		this.clientSocket = clientSocket;
 	}
 
@@ -36,7 +37,9 @@ public class ClientHandler implements Runnable {
 		String message;
 		try {
 			while ((message = reader.readLine()) != null) {
-				processMessage(message);
+				if (!message.startsWith("*audio")) {
+					processMessage(message);
+				}
 			}
 		} catch (IOException e) {
 			System.out.println("'" + this.username + "' se ha desconectado del chat.");
@@ -63,6 +66,10 @@ public class ClientHandler implements Runnable {
 			String instruction = parts[0];
 			String sender = parts[1];
 			sendAudio(sender, instruction);
+		} else if (message.startsWith("/play")) {
+			String[] parts = message.split(" ");
+			String audioName = parts[1];
+			playAudio(audioName);
 		}
 	}
 
@@ -106,6 +113,7 @@ public class ClientHandler implements Runnable {
 
 		try {
 			audioRecorder.startRecording(audioName);
+			sendResponse("Grabando audio...");
 		} catch (LineUnavailableException e) {
 			System.out.println("Error al iniciar la grabación de audio.");
 			System.out.println(e.getMessage());
@@ -121,6 +129,7 @@ public class ClientHandler implements Runnable {
 			return;
 		}
 		audioRecorder.stopRecording();
+		sendResponse("Grabación de audio detenida.");
 	}
 
 	private void sendAudio(String sender, String instruction) {
@@ -133,13 +142,42 @@ public class ClientHandler implements Runnable {
 			sendResponse("No puedes enviarte mensajes a ti mismo.");
 		} else {
 			try {
+				// Enviar una etiqueta que indique que se está enviando audio
+				writer.write("*audio");
+
 				audioRecorder.sendAudio(audioName, clientSocket);
 				Audio audio = audioRecorder.saveAudio();
+
+				ClientHandler receiverClientHandler = chatManager.getClient(receiver);
+				receiverClientHandler.sendResponse(sender + " >>>  " + audioName + ".wav ");
+				sendResponse("Nota de voz enviada a '" + receiver + "'.");
+
 				chatManager.saveAudio(sender, receiver, audio);
+
+				receiverClientHandler.receiveAudio(audioName);
 			} catch (IOException e) {
 				System.out.println("Error al guardar el archivo de audio.");
 				System.out.println(e.getMessage());
 			}
+		}
+	}
+
+	private void playAudio(String audioName) {
+		try {
+			audioRecorder.playAudio(audioName);
+			sendResponse("Reproduciendo " + audioName + ".wav...");
+		} catch (LineUnavailableException | IOException | UnsupportedAudioFileException e) {
+			System.out.println("Error al reproducir el archivo de audio.");
+			System.out.println(e.getMessage());
+		}
+	}
+
+	public void receiveAudio(String audioName) {
+		try {
+			audioRecorder.receiveAudio(audioName, clientSocket);
+		} catch (IOException | LineUnavailableException e) {
+			System.out.println("Error al recibir el archivo de audio.");
+			System.out.println(e.getMessage());
 		}
 	}
 

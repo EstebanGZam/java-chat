@@ -20,16 +20,21 @@ public class AudioRecorder {
     public AudioRecorder() {
         format = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE_IN_BITS, CHANNELS, SIGNED, BIG_ENDIAN);
         isRecording = false;
+        // crear directorio para almacenar los audios
+        File audioDirectory = new File("./resources/audio");
+        if (!audioDirectory.exists()) {
+            audioDirectory.mkdirs();
+        }
     }
 
-    public void startRecording(String fileName) throws LineUnavailableException, IOException {
+    public void startRecording(String audioName) throws LineUnavailableException, IOException {
         DataLine.Info infoMicrophone = new DataLine.Info(TargetDataLine.class, format);
         microphone = (TargetDataLine) AudioSystem.getLine(infoMicrophone);
         microphone.open(format);
         microphone.start();
         isRecording = true;
 
-        audioFile = new File("/resources/audio/" + fileName + ".wav");
+        audioFile = new File("./resources/audio/" + audioName + ".wav");
         new Thread(() -> {
             try (AudioInputStream audioStream = new AudioInputStream(microphone)) {
                 AudioSystem.write(audioStream, AudioFileFormat.Type.WAVE, audioFile);
@@ -45,17 +50,19 @@ public class AudioRecorder {
         microphone.close();
     }
 
-    public void playAudio(String fileName) throws LineUnavailableException, IOException, UnsupportedAudioFileException {
-        File audioFile = new File("/resources/audio/" + fileName + ".wav");
+    public void playAudio(String audioName)
+            throws LineUnavailableException, IOException, UnsupportedAudioFileException {
+        audioFile = new File("./resources/audio/" + audioName + ".wav");
         AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
         Clip clip = AudioSystem.getClip();
         clip.open(audioStream);
         clip.start();
     }
 
-    public void sendAudio(String fileName, Socket socket) throws IOException {
-        OutputStream os = socket.getOutputStream();
-        FileInputStream fis = new FileInputStream("/resources/audio/" + fileName + ".wav");
+    public void sendAudio(String audioName, Socket audioSocket) throws IOException {
+        audioFile = new File("./resources/audio/" + audioName + ".wav");
+        OutputStream os = audioSocket.getOutputStream();
+        FileInputStream fis = new FileInputStream(audioFile);
         byte[] buffer = new byte[4096];
         int bytesRead;
         while ((bytesRead = fis.read(buffer)) != -1) {
@@ -63,6 +70,17 @@ public class AudioRecorder {
         }
         os.flush();
         fis.close();
+    }
+
+    public void receiveAudio(String audioName, Socket audioSocket) throws IOException, LineUnavailableException {
+        InputStream is = audioSocket.getInputStream();
+        FileOutputStream fos = new FileOutputStream("./resources/audio/" + audioName + ".wav");
+        byte[] buffer = new byte[4096];
+        int bytesRead;
+        while ((bytesRead = is.read(buffer)) != -1) {
+            fos.write(buffer, 0, bytesRead);
+        }
+        fos.close();
     }
 
     public Audio saveAudio() {

@@ -42,12 +42,15 @@ public class CommunicationBroker implements CommunicationBrokerI {
 			sendMessageToAnotherClient(instruction + "<<<<<" + sourceUser);
 		} else if (instruction.equals("/getHistory")) {
 			showHistory(instruction);
-		} else if (instruction.equals("/record")) {
+		} else if (instruction.startsWith("/record")) {
+			System.out.println("Grabando audio...");
 			startRecordingAudio(instruction);
 		} else if (instruction.startsWith("/stop-audio")) {
-			stopRecordingAudio();
+			stopRecordingAudio(instruction);
 		} else if (instruction.startsWith("/send-audio")) {
 			sendAudio(instruction + "<<<<<" + sourceUser);
+		} else if (instruction.startsWith("/play")) {
+			playAudio(instruction);
 		}
 	}
 
@@ -62,15 +65,18 @@ public class CommunicationBroker implements CommunicationBrokerI {
 	}
 
 	public void startRecordingAudio(String instruction) {
-		writer.println("Grabando audio...");
 		writer.println(instruction);
 	}
 
-	public void stopRecordingAudio() {
-		writer.println("Deteniendo grabación de audio");
+	public void stopRecordingAudio(String instruction) {
+		writer.println(instruction);
 	}
 
 	public void sendAudio(String instruction) {
+		writer.println(instruction);
+	}
+
+	public void playAudio(String instruction) {
 		writer.println(instruction);
 	}
 
