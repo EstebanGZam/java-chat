@@ -3,19 +3,19 @@ package communication;
 import java.io.IOException;
 
 public interface CommunicationBrokerI {
-	// Registrar un cliente con su ID único y socket
+	// Register a client with its unique ID and socket
 	String registerClient(String clientId) throws IOException;
 
-	// Recibir mensajes del servidor
+	// Receive messages from the server
 	String receiveMessage() throws IOException;
 
-	// Procesar instrucción
+	// Process instruction
 	void processInstruction(String sourceUser, String instruction);
 
-	// Enviar mensaje a otro cliente
+	// Send message to another client
 	void sendMessageToAnotherClient(String instruction);
 
-	// Mostrar el historial de mensajes
+	// Show message history
 	void showHistory(String instruction) throws IOException;
 }
 

@@ -24,6 +24,14 @@ public class ClientHandler implements Runnable {
 		receiveMessage();
 	}
 
+	/**
+	 * This method receives a message from the user and processes it.
+	 * <p>
+	 * The method is in an infinite loop, waiting for messages from the user.
+	 * <p>
+	 * If an I/O error occurs while receiving the message, the user is removed from the chat manager,
+	 * and the loop is stopped.
+	 */
 	public void receiveMessage() {
 		String message;
 		try {
@@ -36,6 +44,14 @@ public class ClientHandler implements Runnable {
 		}
 	}
 
+	/**
+	 * Processes a message from the user.
+	 * <p>
+	 * For now, the message can be either a message to send to another user or a command to show the message history.
+	 * <p>
+	 *
+	 * @param message the message from the user
+	 */
 	private void processMessage(String message) {
 		if (message.startsWith("/msg")) {
 			String[] parts = message.split("<<<<<");
@@ -47,10 +63,25 @@ public class ClientHandler implements Runnable {
 		}
 	}
 
+	/**
+	 * Sends a response to the client with the given message.
+	 */
 	public void sendResponse(String message) {
 		writer.println(message);
 	}
 
+	/**
+	 * Sends a message to another client.
+	 * <p>
+	 * This method takes the instruction to send a message to another client and the sender's username.
+	 * The instruction must start with "/msg" and have the format "/msg <username> <message>".
+	 * <p>
+	 * If the receiver does not exist in the chat manager, the method sends a response to the sender saying that the user does not exist.
+	 * <p>
+	 *
+	 * @param sender      the username of the sender
+	 * @param instruction the instruction to send a message to another client
+	 */
 	private void sendMessageToAnotherClient(String sender, String instruction) {
 		String[] parts = instruction.split(" ");
 		String receiver = parts[1];
@@ -67,6 +98,13 @@ public class ClientHandler implements Runnable {
 		}
 	}
 
+	/**
+	 * Shows the history of messages sent in the chat.
+	 * <p>
+	 * This method sends all the messages in the chat manager to the client.
+	 * The messages are ordered by the time they were saved, with the most recent messages last.
+	 * <p>
+	 */
 	private void showHistory() {
 		List<Message> messages = chatManager.getMessageHistory();
 		for (Message savedMessage : messages) {

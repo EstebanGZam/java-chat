@@ -35,6 +35,12 @@ public class Server {
 		}
 	}
 
+	/**
+	 * Accepts a new client connection.
+	 *
+	 * @param serverSocket the server socket to accept new clients
+	 * @throws IOException If an I/O error occurs while accepting the new client
+	 */
 	private Socket acceptNewClient(ServerSocket serverSocket) throws IOException {
 		Socket socket = serverSocket.accept();
 		System.out.println("Un nuevo cliente se ha conectado desde la IP: '" + socket.getInetAddress().getHostAddress()
@@ -42,7 +48,14 @@ public class Server {
 		return socket;
 	}
 
-	// Registrar un cliente con su ID único y handler
+	/**
+	 * Registers a client with its corresponding socket.
+	 * <p>
+	 * This method associates a client with its unique ID and a handler that will be used to communicate with it.
+	 *
+	 * @param clientSocket the socket of the client to register
+	 * @throws IOException If an I/O error occurs while registering the client
+	 */
 	public synchronized void registerClient(Socket clientSocket) throws IOException {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 		PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
