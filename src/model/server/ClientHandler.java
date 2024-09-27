@@ -5,6 +5,8 @@ import model.messages.Message;
 
 import java.io.*;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 public class ClientHandler implements Runnable {
@@ -44,6 +46,15 @@ public class ClientHandler implements Runnable {
 			sendMessageToAnotherClient(sender, instruction);
 		} else if (message.equals("/getHistory")) {
 			showHistory();
+		} else if (message.startsWith("/createGroup")) {
+			createGroup(message);
+		} else if (message.startsWith("/joinGroup")) {
+			String[] parts = message.split("<<<<<");
+			String instruction = parts[0];
+			String sender = parts[1];
+			joinGroup(sender, instruction);
+		} else if (message.equals("/listGroups")) {
+			listGroups();
 		}
 	}
 
@@ -74,4 +85,52 @@ public class ClientHandler implements Runnable {
 		}
 	}
 
+	private void createGroup(String instruction) {
+		String[] parts = instruction.split(" ");
+		if (parts.length != 2) {
+			sendResponse("Comando inválido. Use: /createGroup nombreDelGrupo");
+			return;
+		}
+		String groupName = parts[1];
+		if (chatManager.groupExists(groupName)) {
+			sendResponse("El grupo '" + groupName + "' ya existe.");
+		} else {
+			chatManager.createGroup(groupName);
+			sendResponse("Grupo '" + groupName + "' creado exitosamente.");
+		}
+	}
+
+	private void joinGroup(String sender, String instruction) {
+		String[] parts = instruction.split(" ");
+		if (parts.length != 2) {
+			sendResponse("Comando inválido. Use: /joinGroup nombreDelGrupo");
+			return;
+		}
+		String groupName = parts[1];
+		if (chatManager.joinGroup(groupName, sender)) {
+			sendResponse("Te has unido al grupo '" + groupName + "' exitosamente.");
+		} else {
+			sendResponse("No se pudo unir al grupo '" + groupName + "'. El grupo no existe.");
+		}
+	}
+
+	private void listGroups() {
+		Map<String, Set<String>> groupsInfo = chatManager.getGroupsWithMembers();
+		if (groupsInfo.isEmpty()) {
+			sendResponse("No hay grupos creados actualmente.");
+		} else {
+			StringBuilder response = new StringBuilder("Grupos existentes y sus miembros:\n");
+			for (Map.Entry<String, Set<String>> entry : groupsInfo.entrySet()) {
+				response.append("- ").append(entry.getKey()).append(":\n");
+				if (entry.getValue().isEmpty()) {
+					response.append("  (No hay miembros)\n");
+				} else {
+					for (String member : entry.getValue()) {
+						response.append("  • ").append(member).append("\n");
+					}
+				}
+			}
+			sendResponse(response.toString());
+		}
+	}
 }

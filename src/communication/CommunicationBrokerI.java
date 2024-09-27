@@ -17,5 +17,13 @@ public interface CommunicationBrokerI {
 
 	// Mostrar el historial de mensajes
 	void showHistory(String instruction) throws IOException;
-}
 
+	// Crear un grupo
+	void createGroup(String instruction);
+
+	// Listar todos los grupos
+	void listGroups(String instruction);
+
+	// Unirse a un grupo
+	void joinGroup(String instruction);
+}

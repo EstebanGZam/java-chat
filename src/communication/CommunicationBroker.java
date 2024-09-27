@@ -43,6 +43,12 @@ public class CommunicationBroker implements CommunicationBrokerI {
 			sendMessageToAnotherClient(instruction + "<<<<<" + sourceUser);
 		} else if (instruction.equals("/getHistory")) {
 			showHistory(instruction);
+		} else if (instruction.startsWith("/createGroup")) {
+			createGroup(instruction);
+		} else if (instruction.startsWith("/joinGroup")) {
+			joinGroup(instruction + "<<<<<" + sourceUser);
+		} else if (instruction.equals("/listGroups")) {
+			listGroups(instruction);
 		}
 	}
 
@@ -56,4 +62,12 @@ public class CommunicationBroker implements CommunicationBrokerI {
 		writer.println(instruction);
 	}
 
+	@Override
+	public void createGroup(String instruction) { writer.println(instruction); }
+
+	@Override
+	public void listGroups(String instruction) { writer.println(instruction); }
+
+	@Override
+	public void joinGroup(String instruction) { writer.println(instruction); }
 }

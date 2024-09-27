@@ -47,6 +47,9 @@ public class Client {
 		System.out.println("Para enviar un mensaje a todos, solo escribe el mensaje y presiona Enter.");
 		System.out.println("Para enviar un mensaje privado a otro cliente, escribe: /msg <usuario_destino> <mensaje>");
 		System.out.println("Para salir ver el historial de mensajes, escribe: /msgHistory");
+		System.out.println("Para crear un nuevo grupo, escribe: /createGroup <nombre_del_grupo>");
+		System.out.println("Para ver la lista de grupos existentes y sus miembros, escribe: /listGroups");
+		System.out.println("Para unirte a un grupo existente, escribe: /joinGroup <nombre_del_grupo>");
 		System.out.println("Para salir del chat, escribe: exit");
 		System.out.println("----------------------------------------------------------------------------------------------");
 	}
@@ -138,6 +141,4 @@ public class Client {
 		});
 		receiver.start();
 	}
-
-
 }
