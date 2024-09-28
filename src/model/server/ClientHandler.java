@@ -130,6 +130,16 @@ public class ClientHandler implements Runnable {
 	}
 
 	private void playAudio(String audioName) {
+		if (audioRecorder.isRecording()) {
+			sendResponse("No puedes reproducir un audio mientras se está grabando.");
+			return;
+		}
+
+		if (!audioRecorder.audioExists(audioName)) {
+			sendResponse("El archivo de audio '" + audioName + ".wav' no existe.");
+			return;
+		}
+
 		try {
 			audioRecorder.playAudio(audioName);
 			sendResponse("Reproduciendo " + audioName + ".wav...");
@@ -144,7 +154,11 @@ public class ClientHandler implements Runnable {
 		String audioName = parts[1];
 		String receiver = parts[2];
 
-		if (!chatManager.clientExists(receiver)) {
+		if (!audioRecorder.audioExists(audioName)) {
+			sendResponse("El archivo de audio '" + audioName + ".wav' no existe.");
+		} else if (audioRecorder.isRecording()) {
+			sendResponse("No puedes enviar un audio mientras se está grabando.");
+		} else if (!chatManager.clientExists(receiver)) {
 			sendResponse("El usuario '" + receiver + "' no existe.");
 		} else if (receiver.equals(sender)) {
 			sendResponse("No puedes enviarte mensajes a ti mismo.");
@@ -157,13 +171,10 @@ public class ClientHandler implements Runnable {
 
 				// El receptor se prepara para recibir (hilo aparte)
 				new Thread(() -> {
-					try {
-						System.out.println("Receptor esperando para recibir audio...");
-						receiverClientHandler.receiveAudio(audioName); // Recibe el audio
-						System.out.println("Recepción de audio completada.");
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+					System.out.println("Receptor esperando para recibir audio...");
+					receiverClientHandler.receiveAudio(audioName); // Recibe el audio
+					receiverClientHandler.sendResponse(sender + " >>> " + audioName + ".wav ");
+					System.out.println("Recepción de audio completada.");
 				}).start();
 
 				// Dar un pequeño retraso para asegurarnos de que el receptor está listo
@@ -174,7 +185,6 @@ public class ClientHandler implements Runnable {
 				System.out.println("Audio enviado completamente.");
 
 				// Enviar un mensaje de confirmación
-				receiverClientHandler.sendResponse(sender + " >>> " + audioName + ".wav ");
 				sendResponse("Nota de voz enviada a '" + receiver + "'.");
 
 				// Guardar el audio

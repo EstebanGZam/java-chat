@@ -117,4 +117,9 @@ public class AudioRecorder {
     public boolean isRecording() {
         return isRecording;
     }
+
+    public boolean audioExists(String audioName) {
+        audioFile = new File("./resources/audio/" + audioName + ".wav");
+        return audioFile.exists();
+    }
 }
