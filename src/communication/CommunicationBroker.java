@@ -43,7 +43,6 @@ public class CommunicationBroker implements CommunicationBrokerI {
 		} else if (instruction.equals("/getHistory")) {
 			showHistory(instruction);
 		} else if (instruction.startsWith("/record")) {
-			System.out.println("Grabando audio...");
 			startRecordingAudio(instruction);
 		} else if (instruction.startsWith("/stop-audio")) {
 			stopRecordingAudio(instruction);

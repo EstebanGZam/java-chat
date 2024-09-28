@@ -11,7 +11,8 @@ import java.net.Socket;
 
 public class Client {
 	private String username;
-	private Socket socket;
+	private Socket textSocket;
+	private Socket audioSocket;
 	// Entrada de información (por consola)
 	private final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 	// Lector de entrada de consola
@@ -79,13 +80,14 @@ public class Client {
 	}
 
 	private void initializeConnection() throws IOException {
-		this.socket = new Socket(Server.IP, Server.PORT);
-		communicationBroker = new CommunicationBroker(this.socket);
+		this.textSocket = new Socket(Server.IP, Server.TEXT_PORT);
+		this.audioSocket = new Socket(Server.IP, Server.AUDIO_PORT);
+		communicationBroker = new CommunicationBroker(this.textSocket);
 		System.out.println("\nConexión exitosa!");
 	}
 
 	private boolean isConnected() {
-		return socket != null && socket.isConnected();
+		return textSocket != null && textSocket.isConnected() && audioSocket != null && audioSocket.isConnected();
 	}
 
 	private void createUsername() {
@@ -112,7 +114,8 @@ public class Client {
 	private void closeProgram() {
 		try {
 			reader.close();
-			socket.close();
+			textSocket.close();
+			audioSocket.close();
 		} catch (IOException e) {
 			System.out.println("Error al cerrar el programa.");
 		}
@@ -143,10 +146,6 @@ public class Client {
 			}
 		});
 		receiver.start();
-	}
-
-	public Socket getSocket() {
-		return socket;
 	}
 
 	public String getUsername() {

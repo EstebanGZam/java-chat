@@ -14,7 +14,8 @@ public class Server {
 	private final ExecutorService pool;
 	private final ChatManager chatManager;
 	public static final String IP = "127.0.0.1";
-	public static final int PORT = 10000;
+	public static final int TEXT_PORT = 10000;
+	public static final int AUDIO_PORT = 10001;
 
 	private Server() {
 		this.pool = java.util.concurrent.Executors.newFixedThreadPool(10);
@@ -24,11 +25,22 @@ public class Server {
 	public static void main(String[] args) {
 		Server server = new Server();
 		try {
-			ServerSocket serverSocket = new ServerSocket(PORT);
-			System.out.println("Servidor iniciado en el puerto " + PORT);
-			while (!serverSocket.isClosed()) {
-				Socket clientSocket = server.acceptNewClient(serverSocket);
-				server.registerClient(clientSocket);
+
+			ServerSocket textServerSocket = new ServerSocket(TEXT_PORT);
+			ServerSocket audioServerSocket = new ServerSocket(AUDIO_PORT);
+
+			System.out.println("Servidor de texto iniciado en el puerto " + TEXT_PORT);
+			System.out.println("Servidor de audio iniciado en el puerto " + AUDIO_PORT);
+
+			while (!textServerSocket.isClosed() && !audioServerSocket.isClosed()) {
+				// Aceptar conexión de cliente para texto
+				Socket textClientSocket = server.acceptNewClient(textServerSocket);
+
+				// Aceptar conexión de cliente para audio (relacionado al cliente de texto)
+				Socket audioClientSocket = server.acceptNewClient(audioServerSocket);
+
+				// Registrar cliente con ambos sockets (texto y audio)
+				server.registerClient(textClientSocket, audioClientSocket);
 			}
 		} catch (IOException e) {
 			System.err.println("Error: " + e.getMessage());
@@ -43,18 +55,28 @@ public class Server {
 	}
 
 	// Registrar un cliente con su ID único y handler
-	public synchronized void registerClient(Socket clientSocket) throws IOException {
-		BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-		PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
+	// Registrar un cliente con su ID único y dos sockets (texto y audio)
+	public synchronized void registerClient(Socket textClientSocket, Socket audioClientSocket) throws IOException {
+		BufferedReader reader = new BufferedReader(new InputStreamReader(textClientSocket.getInputStream()));
+		PrintWriter writer = new PrintWriter(textClientSocket.getOutputStream(), true);
+
+		// Leer nombre de usuario desde el socket de texto
 		String username = reader.readLine();
 
+		// Comprobar si el nombre de usuario ya está en uso
 		while (this.chatManager.clientExists(username)) {
 			writer.println("El nombre de usuario ya está en uso.");
 			username = reader.readLine();
 		}
+
+		// Confirmación de bienvenida al usuario
 		writer.println("Bienvenido/a al chat " + username + "!");
-		ClientHandler clientHandler = new ClientHandler(username, reader, writer, clientSocket);
+
+		// Crear un nuevo `ClientHandler` con ambos sockets
+		ClientHandler clientHandler = new ClientHandler(username, reader, writer, textClientSocket, audioClientSocket);
 		this.chatManager.registerClient(username, clientHandler);
+
+		// Ejecutar el manejo del cliente en un hilo separado
 		pool.execute(clientHandler);
 	}
 

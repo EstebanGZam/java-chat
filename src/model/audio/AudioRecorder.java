@@ -17,7 +17,9 @@ public class AudioRecorder {
     public static final boolean SIGNED = true;
     public static final boolean BIG_ENDIAN = true;
 
-    public AudioRecorder() {
+    private final Socket audioSocket;
+
+    public AudioRecorder(Socket audioSocket) {
         format = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE_IN_BITS, CHANNELS, SIGNED, BIG_ENDIAN);
         isRecording = false;
         // crear directorio para almacenar los audios
@@ -25,6 +27,7 @@ public class AudioRecorder {
         if (!audioDirectory.exists()) {
             audioDirectory.mkdirs();
         }
+        this.audioSocket = audioSocket;
     }
 
     public void startRecording(String audioName) throws LineUnavailableException, IOException {
@@ -59,28 +62,52 @@ public class AudioRecorder {
         clip.start();
     }
 
-    public void sendAudio(String audioName, Socket audioSocket) throws IOException {
+    public void sendAudio(String audioName) throws IOException {
         audioFile = new File("./resources/audio/" + audioName + ".wav");
-        OutputStream os = audioSocket.getOutputStream();
+        byte[] audioBytes = new byte[(int) audioFile.length()];
+
+        System.out.println("Enviando audio: " + audioName);
         FileInputStream fis = new FileInputStream(audioFile);
-        byte[] buffer = new byte[4096];
-        int bytesRead;
-        while ((bytesRead = fis.read(buffer)) != -1) {
-            os.write(buffer, 0, bytesRead);
-        }
-        os.flush();
-        fis.close();
+        BufferedInputStream bis = new BufferedInputStream(fis);
+        bis.read(audioBytes, 0, audioBytes.length);
+        bis.close();
+
+        // Crear el flujo de salida para enviar los datos
+        DataOutputStream dos = new DataOutputStream(audioSocket.getOutputStream());
+        dos.writeLong(audioBytes.length); // Tamaño del archivo
+        System.out.println("Enviando audio al servidor...");
+
+        // Enviar los datos de audio en chunks
+        dos.write(audioBytes, 0, audioBytes.length);
+        dos.flush(); // Asegurarse de vaciar el buffer
+
+        System.out.println("Audio enviado completamente.");
     }
 
-    public void receiveAudio(String audioName, Socket audioSocket) throws IOException, LineUnavailableException {
-        InputStream is = audioSocket.getInputStream();
-        FileOutputStream fos = new FileOutputStream("./resources/audio/" + audioName + ".wav");
-        byte[] buffer = new byte[4096];
+    public void receiveAudio(String audioName) throws IOException {
+        audioFile = new File("./resources/audio/" + audioName + ".wav");
+
+        // Recibir el tamaño del archivo
+        DataInputStream dis = new DataInputStream(audioSocket.getInputStream());
+        long fileSize = dis.readLong();
+        System.out.println("Recibiendo audio... Tamaño: " + fileSize + " bytes.");
+
+        // Preparar el archivo para la escritura
+        FileOutputStream fos = new FileOutputStream(audioFile);
+        byte[] buffer = new byte[4096]; // Búfer de tamaño adecuado
         int bytesRead;
-        while ((bytesRead = is.read(buffer)) != -1) {
+        long totalBytesRead = 0;
+
+        // Leer en bloques el archivo
+        while (totalBytesRead < fileSize && (bytesRead = dis.read(buffer)) != -1) {
             fos.write(buffer, 0, bytesRead);
+            totalBytesRead += bytesRead;
         }
+
+        fos.flush();
         fos.close();
+
+        System.out.println("Audio recibido completamente.");
     }
 
     public Audio saveAudio() {
