@@ -19,7 +19,7 @@ public class ClientHandler implements Runnable {
 	private final BufferedReader reader;
 	private final AudioRecorder audioRecorder;
 
-	public ClientHandler(String username, BufferedReader reader, PrintWriter writer, Socket clientSocket,
+	public ClientHandler(String username, BufferedReader reader, PrintWriter writer, Socket textSocket,
 			Socket audioSocket) {
 		this.username = username;
 		this.reader = reader;
@@ -149,6 +149,7 @@ public class ClientHandler implements Runnable {
 		}
 	}
 
+	// Dentro del método sendAudio:
 	private void sendAudio(String sender, String instruction) {
 		String[] parts = instruction.split(" ");
 		String audioName = parts[1];
@@ -156,58 +157,65 @@ public class ClientHandler implements Runnable {
 
 		if (!audioRecorder.audioExists(audioName)) {
 			sendResponse("El archivo de audio '" + audioName + ".wav' no existe.");
-		} else if (audioRecorder.isRecording()) {
+			return;
+		}
+		if (audioRecorder.isRecording()) {
 			sendResponse("No puedes enviar un audio mientras se está grabando.");
-		} else if (!chatManager.clientExists(receiver)) {
+			return;
+		}
+		if (!chatManager.clientExists(receiver)) {
 			sendResponse("El usuario '" + receiver + "' no existe.");
-		} else if (receiver.equals(sender)) {
+			return;
+		}
+		if (receiver.equals(sender)) {
 			sendResponse("No puedes enviarte mensajes a ti mismo.");
-		} else {
-			try {
-				ClientHandler receiverClientHandler = chatManager.getClient(receiver);
+			return;
+		}
 
-				// Sincronización del envío y recepción
-				System.out.println("Iniciando envío de audio...");
+		try {
+			ClientHandler receiverClientHandler = chatManager.getClient(receiver);
 
-				// El receptor se prepara para recibir (hilo aparte)
-				new Thread(() -> {
-					System.out.println("Receptor esperando para recibir audio...");
-					receiverClientHandler.receiveAudio(audioName); // Recibe el audio
-					receiverClientHandler.sendResponse(sender + " >>> " + audioName + ".wav ");
-					System.out.println("Recepción de audio completada.");
-				}).start();
+			new Thread(() -> {
+				System.out.println("Enviando audio a '" + receiver + "'...");
+				receiverClientHandler.receiveAudio(audioName, sender);
+				System.out.println("Audio enviado a '" + receiver + "'.");
+			}).start();
 
-				// Dar un pequeño retraso para asegurarnos de que el receptor está listo
-				Thread.sleep(100); // Usamos un breve `sleep` para sincronizar
+			AudioRecorder receiverAR = receiverClientHandler.getAudioRecorder();
 
-				// El remitente envía el audio
-				audioRecorder.sendAudio(audioName);
-				System.out.println("Audio enviado completamente.");
-
-				// Enviar un mensaje de confirmación
-				sendResponse("Nota de voz enviada a '" + receiver + "'.");
-
-				// Guardar el audio
-				Audio audio = audioRecorder.saveAudio();
-				chatManager.saveAudio(sender, receiver, audio);
-
-			} catch (IOException | InterruptedException e) {
-				System.out.println("Error al enviar el archivo de audio.");
-				System.out.println(e.getMessage());
+			// espera a que este escuchando
+			while (!receiverAR.isHearing()) {
+				System.out.println("Esta escuchando?" + receiverAR.isHearing());
+				if (receiverAR.isHearing()) {
+					System.out.println("sali");
+					break;
+				}
 			}
+			audioRecorder.sendAudio(audioName);
+			sendResponse("Nota de voz enviada a '" + receiver + "'.");
+
+			Audio audio = audioRecorder.saveAudio();
+			chatManager.saveAudio(sender, receiver, audio);
+
+		} catch (IOException e) {
+			System.out.println("Error al enviar el archivo de audio.");
+			e.printStackTrace();
 		}
 	}
 
-	public void receiveAudio(String audioName) {
+	public void receiveAudio(String audioName, String sender) {
+		System.out.println("Recibiendo audio de '" + sender + "'..." + audioName);
 		try {
-			// El receptor recibe el audio
-			System.out.println("Preparado para recibir audio...");
 			audioRecorder.receiveAudio(audioName);
-			System.out.println("Audio recibido correctamente.");
+			sendResponse(sender + " >>> " + "received.wav ");
 		} catch (IOException e) {
 			System.out.println("Error al recibir el archivo de audio.");
-			System.out.println(e.getMessage());
+			e.printStackTrace();
 		}
+	}
+
+	public AudioRecorder getAudioRecorder() {
+		return audioRecorder;
 	}
 
 }

@@ -15,7 +15,7 @@ public class Server {
 	private final ChatManager chatManager;
 	public static final String IP = "127.0.0.1";
 	public static final int TEXT_PORT = 10000;
-	public static final int AUDIO_PORT = 10001;
+	public static final int AUDIO_PORT = 5000;
 
 	private Server() {
 		this.pool = java.util.concurrent.Executors.newFixedThreadPool(10);
