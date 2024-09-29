@@ -26,4 +26,6 @@ public interface CommunicationBrokerI {
 
 	// Unirse a un grupo
 	void joinGroup(String instruction);
+
+	void sendGroupMessage(String instruction);
 }

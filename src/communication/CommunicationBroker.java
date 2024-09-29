@@ -49,6 +49,8 @@ public class CommunicationBroker implements CommunicationBrokerI {
 			joinGroup(instruction + "<<<<<" + sourceUser);
 		} else if (instruction.equals("/listGroups")) {
 			listGroups(instruction);
+		}else if(instruction.startsWith("/groupMsg")){
+			sendGroupMessage(instruction);
 		}
 	}
 
@@ -70,4 +72,6 @@ public class CommunicationBroker implements CommunicationBrokerI {
 
 	@Override
 	public void joinGroup(String instruction) { writer.println(instruction); }
+
+	public void sendGroupMessage(String instruction){writer.println(instruction);}
 }

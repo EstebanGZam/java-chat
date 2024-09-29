@@ -15,7 +15,8 @@ public class ChatManager {
 	private final Map<String, Group> groups = new HashMap<>();
 
 	public static ChatManager getInstance() {
-		if (instance == null) instance = new ChatManager();
+		if (instance == null)
+			instance = new ChatManager();
 		return instance;
 	}
 
@@ -34,9 +35,8 @@ public class ChatManager {
 	public void saveMessage(String sender, String receiver, String message) {
 		Message newMessage = new Message(sender, receiver, message);
 		messageHistory.put(
-				messagesID = messagesID.add(BigInteger.ONE),  // Incremento el ID antes de guardar
-				newMessage
-		);
+				messagesID = messagesID.add(BigInteger.ONE), // Increment the ID before saving
+				newMessage);
 	}
 
 	public void unregisterClient(String username) {
@@ -44,7 +44,7 @@ public class ChatManager {
 	}
 
 	public List<Message> getMessageHistory() {
-		// Retorna una lista de los mensajes en el orden en que fueron guardados
+		// Return a list of saved messages in order
 		return new ArrayList<>(messageHistory.values());
 	}
 
@@ -74,4 +74,25 @@ public class ChatManager {
 		}
 		return false;
 	}
+
+	/**
+ * Sends a message to all members of a specified group.
+ * If the group exists, the message is broadcasted to each member that is currently connected.
+ *
+ * @param groupName The name of the group to which the message will be sent.
+ * @param sender The username of the client sending the message.
+ * @param message The message content to be sent to the group members.
+ */
+public void sendGroupMessage(String groupName, String sender, String message) {
+   if (groups.containsKey(groupName)) {
+        Group group = groups.get(groupName);
+        for (String member : group.getMembers()) {
+            if (clients.containsKey(member)) {
+                clients.get(member).sendResponse(sender + " (en grupo " + groupName + "): " + message);
+            }
+        }
+    }
+}
+
+
 }
