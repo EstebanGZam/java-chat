@@ -94,5 +94,14 @@ public void sendGroupMessage(String groupName, String sender, String message) {
     }
 }
 
+public boolean isUserInGroup(String username, String groupName) {
+    if (groups.containsKey(groupName)) {
+        Group group = groups.get(groupName);
+        return group.isMember(username);
+    }
+    return false;
+}
+
+
 
 }

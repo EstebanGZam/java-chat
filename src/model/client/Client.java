@@ -12,9 +12,9 @@ import java.net.Socket;
 public class Client {
 	private String username;
 	private Socket socket;
-	// Entrada de información (por consola)
+	
 	private final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-	// Lector de entrada de consola
+	
 	private CommunicationBrokerI communicationBroker;
 
 	public static void main(String[] args) throws IOException {
@@ -50,7 +50,7 @@ public class Client {
 		System.out.println("Para crear un nuevo grupo, escribe: /createGroup <nombre_del_grupo>");
 		System.out.println("Para ver la lista de grupos existentes y sus miembros, escribe: /listGroups");
 		System.out.println("Para unirte a un grupo existente, escribe: /joinGroup <nombre_del_grupo>");
-		System.out.println("Para enviar un mensaje al grupo del cual es miembo, escribe /groupMsg <mensaje>");
+		System.out.println("Para enviar un mensaje al grupo del cual es miembo, escribe /groupMsg  <nombre_del_grupo> <mensaje>");
 		System.out.println("Para salir del chat, escribe: exit");
 		System.out.println("----------------------------------------------------------------------------------------------");
 	}
