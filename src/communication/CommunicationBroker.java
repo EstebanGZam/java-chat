@@ -72,6 +72,7 @@ public class CommunicationBroker implements CommunicationBrokerI {
 
 	@Override
 	public void joinGroup(String instruction) { writer.println(instruction); }
-
+	
+        @override
 	public void sendGroupMessage(String instruction){writer.println(instruction);}
 }
