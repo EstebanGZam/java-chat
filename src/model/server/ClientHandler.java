@@ -31,10 +31,6 @@ public class ClientHandler implements Runnable {
 	 */
 	private final BufferedReader reader;
 
-	/**
-	 * Current group that the user has joined.
-	 */
-	private String currentGroup = null;
 
 	public ClientHandler(String username, BufferedReader reader, PrintWriter writer) {
 		this.username = username;
@@ -175,7 +171,7 @@ public class ClientHandler implements Runnable {
 		}
 		String groupName = parts[1];
 		if (chatManager.joinGroup(groupName, sender)) {
-			currentGroup = groupName;
+//			currentGroup = groupName;
 			sendResponse("Te has unido al grupo '" + groupName + "' exitosamente.");
 		} else {
 			sendResponse("No se pudo unir al grupo '" + groupName + "'. El grupo no existe.");

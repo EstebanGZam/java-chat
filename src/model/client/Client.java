@@ -1,7 +1,7 @@
 package model.client;
 
-import communication.CommunicationBroker;
 import communication.CommunicationBrokerI;
+import communication.CommunicationBroker;
 import model.audio.AudioPlayer;
 import model.audio.AudioRecorder;
 import model.server.Server;
@@ -19,7 +19,7 @@ public class Client {
 	// Entrada de información (por consola)
 	private final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 	// Lector de entrada de consola
-	private CommunicationBrokerI communicationBroker;
+	private CommunicationBroker communicationBroker;
 	private final AudioRecorder audioRecorder = new AudioRecorder();
 	private final AudioPlayer audioPlayer = new AudioPlayer();
 
@@ -116,7 +116,7 @@ public class Client {
 	}
 
 	/**
-	 * Establishes the connection with the server and creates a {@link CommunicationBroker} object
+	 * Establishes the connection with the server and creates a {@link CommunicationBrokerI} object
 	 * to handle communication with the server.
 	 * <p>
 	 * Throws a {@link IOException} exception if an error occurs while attempting to connect.
@@ -125,7 +125,7 @@ public class Client {
 	 */
 	private void initializeConnection() throws IOException {
 		this.socket = new Socket(Server.IP, Server.PORT);
-		communicationBroker = new CommunicationBroker(this.socket);
+		communicationBroker = new CommunicationBrokerI(this.socket);
 		System.out.println("\nConexión exitosa!");
 	}
 
@@ -200,7 +200,7 @@ public class Client {
 	/**
 	 * Processes a command or message entered by the user.
 	 * <p>
-	 * This method forwards the instruction to the {@link CommunicationBroker} to be processed.
+	 * This method forwards the instruction to the {@link CommunicationBrokerI} to be processed.
 	 * The instruction is prefixed with the username of the client.
 	 *
 	 * @param instruction the instruction or message to be processed
