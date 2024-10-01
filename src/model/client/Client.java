@@ -7,6 +7,7 @@ import model.audio.AudioRecorder;
 import model.server.Server;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
@@ -37,7 +38,6 @@ public class Client {
 		} else {
 			System.out.println("\nNo se pudo establecer la conexión con el servidor.");
 		}
-
 	}
 
 	private void awaitAndProcessCommands() throws IOException {
@@ -138,15 +138,21 @@ public class Client {
 	}
 
 	public void processInstruction(String instruction) {
+		String audioName = "";
 		if (instruction.startsWith("/record")) {
 			String username = instruction.split(" ")[1];
 			SecureRandom secureRandom = new SecureRandom();
-			String audioName = "aud-from-" + username + "-" + (10000 + secureRandom.nextInt(90000));
+			audioName = "aud-from-" + username + "-" + (10000 + secureRandom.nextInt(90000));
 			audioRecorder.startRecording(audioName);
 		} else if (instruction.startsWith("/stop-audio")) {
-			audioRecorder.stopRecording();
+			if (!audioRecorder.isRecording()) {
+				System.out.println("No hay audio en reproducción.");
+			} else {
+				audioRecorder.stopRecording();
+				sendAudio(username, audioName);
+			}
 		} else if (instruction.startsWith("/play")) {
-			String audioName = instruction.split(" ")[1];
+			audioName = instruction.split(" ")[1];
 			try {
 				audioPlayer.playAudio(audioName);
 			} catch (Exception ignored) {
@@ -154,6 +160,13 @@ public class Client {
 			}
 		} else {
 			communicationBroker.processInstruction(this.username, instruction);
+		}
+	}
+
+	private void sendAudio(String targetUser, String audioName) {
+		if (audioPlayer.audioExists(audioName)) {
+			File audioFile = audioPlayer.searchAudio(audioName);
+			communicationBroker.sendAudio(this.username, targetUser, audioFile);
 		}
 	}
 

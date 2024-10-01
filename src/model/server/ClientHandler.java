@@ -24,10 +24,18 @@ public class ClientHandler implements Runnable {
 	}
 
 	public void receiveMessage() {
-		String message;
+		String header;
 		try {
-			while ((message = reader.readLine()) != null) {
-				processMessage(message);
+			while ((header = reader.readLine()) != null) {
+				if (header.equals("TEXT")) {
+					String message = reader.readLine();
+					processTextMessage(message);
+				} else if (header.equals("AUDIO")) {
+					String clientsInCommunication = reader.readLine();
+					String targetUser = clientsInCommunication.split(":::")[0];
+					String sourceUser = clientsInCommunication.split(":::")[1];
+					processAudioMessage();
+				}
 			}
 		} catch (IOException e) {
 			System.out.println("'" + this.username + "' se ha desconectado del chat.");
@@ -35,7 +43,11 @@ public class ClientHandler implements Runnable {
 		}
 	}
 
-	private void processMessage(String message) {
+	private void processAudioMessage() {
+
+	}
+
+	private void processTextMessage(String message) {
 		if (message.startsWith("/msg")) {
 			String[] parts = message.split("<<<<<");
 			String instruction = parts[0];
@@ -43,10 +55,6 @@ public class ClientHandler implements Runnable {
 			sendMessageToAnotherClient(sender, instruction);
 		} else if (message.equals("/getHistory")) {
 			showHistory();
-		} else if (message.startsWith("/send-audio")) {
-			String[] parts = message.split("<<<<<");
-			String instruction = parts[0];
-			String sender = parts[1];
 		}
 	}
 

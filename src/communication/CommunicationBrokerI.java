@@ -1,5 +1,6 @@
 package communication;
 
+import java.io.File;
 import java.io.IOException;
 
 public interface CommunicationBrokerI {
@@ -17,4 +18,8 @@ public interface CommunicationBrokerI {
 
 	// Mostrar el historial de mensajes
 	void showHistory(String instruction) throws IOException;
+
+	// Enviar audio a otro cliente
+	void sendAudio(String sourceUser, String targetUser, File audioFile);
+
 }
