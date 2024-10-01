@@ -90,5 +90,6 @@ public interface CommunicationBroker {
 	 */
 	void sendAudio(String sourceUser, String targetUser, File audioFile) throws IOException;
 
+	void closeConnection() throws IOException;
 }
 

@@ -45,8 +45,14 @@ public class ClientHandler implements Runnable {
 
 	public void receiveMessage() {
 		String header;
-		try {
-			while ((header = reader.readLine()) != null) {
+		boolean receiving = true;
+		while (receiving) {
+			try {
+				header = reader.readLine();
+				if (header == null) {
+					// Esto indica que el flujo se ha cerrado
+					throw new IOException("Flujo cerrado");
+				}
 				if (header.equals("TEXT")) {
 					String message = reader.readLine();
 					processTextMessage(message);
@@ -56,10 +62,11 @@ public class ClientHandler implements Runnable {
 					String sourceUser = clientsInCommunication.split(":::")[1];
 					processAudioMessage();
 				}
+			} catch (IOException e) {
+				System.out.println("'" + this.username + "' se ha desconectado del chat.");
+				chatManager.unregisterClient(this.username);
+				receiving = false;
 			}
-		} catch (IOException e) {
-			System.out.println("'" + this.username + "' se ha desconectado del chat.");
-			chatManager.unregisterClient(this.username);
 		}
 	}
 
@@ -171,7 +178,6 @@ public class ClientHandler implements Runnable {
 		}
 		String groupName = parts[1];
 		if (chatManager.joinGroup(groupName, sender)) {
-//			currentGroup = groupName;
 			sendResponse("Te has unido al grupo '" + groupName + "' exitosamente.");
 		} else {
 			sendResponse("No se pudo unir al grupo '" + groupName + "'. El grupo no existe.");

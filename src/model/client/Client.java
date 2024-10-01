@@ -62,7 +62,7 @@ public class Client {
 		closeProgram();
 	}
 
-	/***
+	/**
 	 * Displays chat usage instructions in the user console.
 	 * <p>
 	 * A menu with usage instructions is displayed in the user console.
@@ -182,6 +182,7 @@ public class Client {
 	 */
 	private void closeProgram() {
 		try {
+			communicationBroker.closeConnection();
 			reader.close();
 			socket.close();
 		} catch (IOException e) {
@@ -245,9 +246,8 @@ public class Client {
 					System.out.println(message);
 					showConsoleCursor();
 				} catch (IOException e) {
-					System.out.println("Error: Ocurrió una desconexión con el servidor.");
+					System.out.println("Sesión con el servidor finalizada. Gracias por usar el chat.");
 					running = false;
-					closeProgram();
 				}
 			}
 		});

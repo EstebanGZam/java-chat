@@ -7,13 +7,11 @@ public class CommunicationBrokerI implements CommunicationBroker {
 	private final Socket clientSocket;
 	private final BufferedReader socketReader;
 	private final PrintWriter writer;
-	private final DataInputStream dataInputStream; // Para leer audio o datos binarios
 
 	public CommunicationBrokerI(Socket clientSocket) throws IOException {
 		this.clientSocket = clientSocket;
 		socketReader = initReader(clientSocket);
 		writer = initWriter(clientSocket);
-		dataInputStream = new DataInputStream(clientSocket.getInputStream());
 	}
 
 	/**
@@ -166,6 +164,8 @@ public class CommunicationBrokerI implements CommunicationBroker {
 	// Method to receive an audio file
 	private void receiveAudio() {
 		try {
+			// Para leer audio o datos binarios
+			DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
 			long fileSize = dataInputStream.readLong(); // Leer el tamaño del archivo
 			byte[] buffer = new byte[1024];
 			int bytesRead;
@@ -201,9 +201,15 @@ public class CommunicationBrokerI implements CommunicationBroker {
 		writer.println(instruction);
 	}
 
-
 	@Override
 	public void sendGroupMessage(String instruction) {
 		writer.println(instruction);
+	}
+
+	@Override
+	public void closeConnection() throws IOException {
+		writer.close();
+		socketReader.close();
+		clientSocket.close();
 	}
 }
