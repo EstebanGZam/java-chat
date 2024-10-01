@@ -80,8 +80,15 @@ public interface CommunicationBroker {
 	 */
 	void sendGroupMessage(String instruction);
 
-	// Enviar audio a otro cliente
-	void sendAudio(String sourceUser, String targetUser, File audioFile);
+	/**
+	 * Sends an audio file to another user.
+	 *
+	 * @param sourceUser Username of the user sending the audio.
+	 * @param targetUser Username of the user receiving the audio.
+	 * @param audioFile  File containing the audio to send.
+	 * @throws IOException If there's an issue with network communication.
+	 */
+	void sendAudio(String sourceUser, String targetUser, File audioFile) throws IOException;
 
 }
 

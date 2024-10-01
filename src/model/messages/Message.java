@@ -1,5 +1,7 @@
 package model.messages;
 
+import model.audio.Audio;
+
 import java.time.LocalDateTime;
 
 public class Message {

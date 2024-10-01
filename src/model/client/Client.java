@@ -231,13 +231,6 @@ public class Client {
 		}
 	}
 
-	private void sendAudio(String targetUser, String audioName) {
-		if (audioPlayer.audioExists(audioName)) {
-			File audioFile = audioPlayer.searchAudio(audioName);
-			communicationBroker.sendAudio(this.username, targetUser, audioFile);
-		}
-	}
-
 	/**
 	 * Starts a thread that is responsible for receiving messages from the server and displaying them on the console.
 	 * <p>
@@ -259,6 +252,18 @@ public class Client {
 			}
 		});
 		receiver.start();
+	}
+
+
+	private void sendAudio(String targetUser, String audioName) {
+		if (audioPlayer.audioExists(audioName)) {
+			File audioFile = audioPlayer.searchAudio(audioName);
+			try {
+				communicationBroker.sendAudio(this.username, targetUser, audioFile);
+			} catch (IOException e) {
+				System.out.println("Error al enviar el audio.");
+			}
+		}
 	}
 }
 

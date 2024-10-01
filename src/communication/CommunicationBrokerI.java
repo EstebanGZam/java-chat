@@ -142,33 +142,28 @@ public class CommunicationBrokerI implements CommunicationBroker {
 	}
 
 	@Override
-	public void sendAudio(String sourceUser, String targetUser, File audioFile) {
-		try {
-			writer.println("AUDIO"); // Enviar encabezado indicando que es audio
-			writer.println(sourceUser + ":::" + targetUser); // Enviar el nombre del usuario
-			FileInputStream fis = new FileInputStream(audioFile);
-			BufferedOutputStream bos = new BufferedOutputStream(this.clientSocket.getOutputStream());
-			DataOutputStream dos = new DataOutputStream(bos);
+	public void sendAudio(String sourceUser, String targetUser, File audioFile) throws IOException {
+		writer.println("AUDIO"); // Enviar encabezado indicando que es audio
+		writer.println(sourceUser + ":::" + targetUser); // Enviar el nombre del usuario
+		FileInputStream fis = new FileInputStream(audioFile);
+		BufferedOutputStream bos = new BufferedOutputStream(this.clientSocket.getOutputStream());
+		DataOutputStream dos = new DataOutputStream(bos);
 
-			long fileSize = audioFile.length();
-			dos.writeLong(fileSize); // Enviar el tamaño del archivo
-			dos.flush();
+		long fileSize = audioFile.length();
+		dos.writeLong(fileSize); // Enviar el tamaño del archivo
+		dos.flush();
 
-			byte[] buffer = new byte[1024];
-			int bytes;
-			while ((bytes = fis.read(buffer)) != -1) {
-				bos.write(buffer, 0, bytes);
-			}
-
-			bos.flush();
-			fis.close();
-//			System.out.println("Audio enviado completamente.");
-		} catch (Exception e) {
-			e.printStackTrace();
+		byte[] buffer = new byte[1024];
+		int bytes;
+		while ((bytes = fis.read(buffer)) != -1) {
+			bos.write(buffer, 0, bytes);
 		}
+
+		bos.flush();
+		fis.close();
 	}
 
-	// Método para recibir un archivo de audio
+	// Method to receive an audio file
 	private void receiveAudio() {
 		try {
 			long fileSize = dataInputStream.readLong(); // Leer el tamaño del archivo

@@ -1,7 +1,7 @@
 package model.manager;
 
 import model.group.Group;
-import model.messages.Audio;
+import model.audio.Audio;
 import model.messages.Message;
 import model.server.ClientHandler;
 
@@ -88,6 +88,12 @@ public class ChatManager {
 	 */
 	public void unregisterClient(String username) {
 		this.clients.remove(username);
+
+		for (Group group : groups.values()) {
+			if (group.isMember(username)) {
+				group.removeMember(username);
+			}
+		}
 	}
 
 	/**
