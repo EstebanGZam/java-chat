@@ -3,8 +3,6 @@ package model.audio;
 import javax.sound.sampled.*;
 import java.io.*;
 
-import model.messages.Audio;
-
 import static model.client.Client.RECEIVED_AUDIO_PATH;
 import static model.client.Client.RECORDED_AUDIO_PATH;
 
@@ -12,7 +10,6 @@ public class AudioRecorder {
 	private TargetDataLine microphone;
 	private final AudioFormat format;
 	private boolean isRecording;
-	//	private final boolean isHearing;
 	private File audioFile;
 
 	public static final int SAMPLE_RATE = 44100;
@@ -24,7 +21,6 @@ public class AudioRecorder {
 	public AudioRecorder() {
 		this.format = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE_IN_BITS, CHANNELS, SIGNED, BIG_ENDIAN);
 		this.isRecording = false;
-//		this.isHearing = false;
 		initDirectory(RECORDED_AUDIO_PATH);
 		initDirectory(RECEIVED_AUDIO_PATH);
 	}
@@ -61,10 +57,6 @@ public class AudioRecorder {
 		isRecording = false;
 		microphone.stop();
 		microphone.close();
-	}
-
-	public Audio saveAudio() {
-		return new Audio(audioFile);
 	}
 
 	public boolean isRecording() {

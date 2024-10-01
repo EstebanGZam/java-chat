@@ -87,7 +87,6 @@ public class Client {
 
 	private void initializeConnection() throws IOException {
 		this.socket = new Socket(Server.IP, Server.PORT);
-//		this.audioSocket = new Socket(Server.IP, Server.AUDIO_PORT);
 		communicationBroker = new CommunicationBroker(this.socket);
 		System.out.println("\nConexión exitosa!");
 	}
@@ -121,7 +120,6 @@ public class Client {
 		try {
 			reader.close();
 			socket.close();
-//			audioSocket.close();
 		} catch (IOException e) {
 			System.out.println("Error al cerrar el programa.");
 		}
@@ -138,6 +136,13 @@ public class Client {
 			audioRecorder.startRecording(audioName);
 		} else if (instruction.startsWith("/stop-audio")) {
 			audioRecorder.stopRecording();
+		} else if (instruction.startsWith("/play")) {
+			String audioName = instruction.split(" ")[1];
+			try {
+				audioPlayer.playAudio(audioName);
+			} catch (Exception ignored) {
+				System.out.println("Error al reproducir el audio.");
+			}
 		} else {
 			communicationBroker.processInstruction(this.username, instruction);
 		}

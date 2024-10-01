@@ -6,20 +6,16 @@ import model.messages.Message;
 import java.io.*;
 import java.util.List;
 
-import java.net.Socket;
-
 public class ClientHandler implements Runnable {
 	private final ChatManager chatManager = ChatManager.getInstance();
 	private final String username;
 	private final PrintWriter writer;
 	private final BufferedReader reader;
-//	private final AudioRecorder audioRecorder;
 
 	public ClientHandler(String username, BufferedReader reader, PrintWriter writer) {
 		this.username = username;
 		this.reader = reader;
 		this.writer = writer;
-//		this.audioRecorder = new AudioRecorder(audioSocket);
 	}
 
 	@Override
@@ -47,23 +43,11 @@ public class ClientHandler implements Runnable {
 			sendMessageToAnotherClient(sender, instruction);
 		} else if (message.equals("/getHistory")) {
 			showHistory();
-//		} else if (message.startsWith("/record")) {
-//			String[] parts = message.split(" ");
-//			String audioName = parts[1];
-//			startAudioRecording(audioName);
-//		} else if (message.startsWith("/stop-audio")) {
-//			stopAudioRecording();
 		} else if (message.startsWith("/send-audio")) {
 			String[] parts = message.split("<<<<<");
 			String instruction = parts[0];
 			String sender = parts[1];
-//			sendAudio(sender, instruction);
 		}
-//		} else if (message.startsWith("/play")) {
-//			String[] parts = message.split(" ");
-//			String audioName = parts[1];
-//			playAudio(audioName);
-//		}
 	}
 
 	public void sendResponse(String message) {
