@@ -2,6 +2,8 @@ package model.client;
 
 import communication.CommunicationBroker;
 import communication.CommunicationBrokerI;
+import model.audio.AudioPlayer;
+import model.audio.AudioRecorder;
 import model.server.Server;
 
 import java.io.BufferedReader;
@@ -11,12 +13,16 @@ import java.net.Socket;
 
 public class Client {
 	private String username;
-	private Socket textSocket;
-	private Socket audioSocket;
+	private Socket socket;
 	// Entrada de información (por consola)
 	private final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 	// Lector de entrada de consola
 	private CommunicationBrokerI communicationBroker;
+	private final AudioRecorder audioRecorder = new AudioRecorder();
+	private final AudioPlayer audioPlayer = new AudioPlayer();
+
+	public static final String RECORDED_AUDIO_PATH = "./resources/audio/recorded/";
+	public static final String RECEIVED_AUDIO_PATH = "./resources/audio/received/";
 
 	public static void main(String[] args) throws IOException {
 		Client client = new Client();
@@ -80,14 +86,14 @@ public class Client {
 	}
 
 	private void initializeConnection() throws IOException {
-		this.textSocket = new Socket(Server.IP, Server.TEXT_PORT);
-		this.audioSocket = new Socket(Server.IP, Server.AUDIO_PORT);
-		communicationBroker = new CommunicationBroker(this.textSocket);
+		this.socket = new Socket(Server.IP, Server.PORT);
+//		this.audioSocket = new Socket(Server.IP, Server.AUDIO_PORT);
+		communicationBroker = new CommunicationBroker(this.socket);
 		System.out.println("\nConexión exitosa!");
 	}
 
 	private boolean isConnected() {
-		return textSocket != null && textSocket.isConnected() && audioSocket != null && audioSocket.isConnected();
+		return socket != null && socket.isConnected();
 	}
 
 	private void createUsername() {
@@ -114,8 +120,8 @@ public class Client {
 	private void closeProgram() {
 		try {
 			reader.close();
-			textSocket.close();
-			audioSocket.close();
+			socket.close();
+//			audioSocket.close();
 		} catch (IOException e) {
 			System.out.println("Error al cerrar el programa.");
 		}
@@ -127,7 +133,14 @@ public class Client {
 	}
 
 	public void processInstruction(String instruction) {
-		communicationBroker.processInstruction(this.username, instruction);
+		if (instruction.startsWith("/record")) {
+			String audioName = instruction.split(" ")[1];
+			audioRecorder.startRecording(audioName);
+		} else if (instruction.startsWith("/stop-audio")) {
+			audioRecorder.stopRecording();
+		} else {
+			communicationBroker.processInstruction(this.username, instruction);
+		}
 	}
 
 	private void receiveMessages() {
@@ -146,10 +159,6 @@ public class Client {
 			}
 		});
 		receiver.start();
-	}
-
-	public String getUsername() {
-		return username;
 	}
 
 }
