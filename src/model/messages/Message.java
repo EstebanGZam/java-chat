@@ -10,7 +10,7 @@ public class Message {
 	private String textContent = null;
 	private Audio audio = null;
 
-	// Constructor for all types of messages (generic)
+	// Constructor for text messages
 	public Message(String sender, String receiver, String textContent) {
 		this.sentDate = LocalDateTime.now();
 		this.sender = sender;
@@ -19,6 +19,7 @@ public class Message {
 		this.textContent = textContent;
 	}
 
+	// Constructor for audio messages
 	public Message(String sender, String receiver, Audio audio) {
 		this.sentDate = LocalDateTime.now();
 		this.sender = sender;
