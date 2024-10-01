@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.security.SecureRandom;
 
 public class Client {
 	private String username;
@@ -55,7 +56,7 @@ public class Client {
 		System.out.println("Para enviar un mensaje a todos, solo escribe el mensaje y presiona Enter.");
 		System.out.println("Para enviar un mensaje privado a otro cliente, escribe: /msg <usuario_destino> <mensaje>");
 		System.out.println("Para salir ver el historial de mensajes, escribe: /msgHistory");
-		System.out.println("Para grabar un mensaje de audio, escribe: /record <nombre_audio>");
+		System.out.println("Para grabar un mensaje de audio que se enviará a otro cliente, escribe: /record <username_del_receptor>");
 		System.out.println("Para detener la grabación de audio, escribe: /stop-audio");
 		System.out.println("Para enviar un mensaje de audio, escribe: /send-audio <nombre_audio> <usuario_destino>");
 		System.out.println("Para reproducir un mensaje de audio, escribe: /play <nombre_audio>");
@@ -132,7 +133,9 @@ public class Client {
 
 	public void processInstruction(String instruction) {
 		if (instruction.startsWith("/record")) {
-			String audioName = instruction.split(" ")[1];
+			String username = instruction.split(" ")[1];
+			SecureRandom secureRandom = new SecureRandom();
+			String audioName = "aud-from-" + username + "-" + (10000 + secureRandom.nextInt(90000));
 			audioRecorder.startRecording(audioName);
 		} else if (instruction.startsWith("/stop-audio")) {
 			audioRecorder.stopRecording();
