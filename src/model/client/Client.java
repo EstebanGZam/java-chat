@@ -100,19 +100,25 @@ public class Client {
 		boolean registered = false;
 		String username;
 		while (!registered) {
-			String response;
+			String response = "";
 			try {
 				System.out.print("\nIntroduce tu nombre de usuario: ");
 				username = reader.readLine();
-				response = communicationBroker.registerClient(username);
+				if (username.split(" ").length > 1) {
+					System.out.println("El nombre de usuario no debe contener espacios.");
+				} else {
+					response = communicationBroker.registerClient(username);
+				}
 			} catch (IOException e) {
 				System.out.println("\n" + "Error al intentar registrar el usuario.");
 				return;
 			}
-			System.out.println(response);
-			if (response.startsWith("Bienvenido")) {
-				this.username = username;
-				registered = true;
+			if (!response.isEmpty()) {
+				System.out.println(response);
+				if (response.startsWith("Bienvenido")) {
+					this.username = username;
+					registered = true;
+				}
 			}
 		}
 	}
