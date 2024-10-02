@@ -8,22 +8,19 @@ import static model.client.Client.RECEIVED_AUDIO_PATH;
 import static model.client.Client.RECORDED_AUDIO_PATH;
 
 public class AudioPlayer {
-	public void playAudio(String audioName)
+	public String playAudio(String audioName)
 			throws LineUnavailableException, IOException, UnsupportedAudioFileException {
 
 		File audioFile = searchAudio(audioName);
+		if (audioFile == null) {
+			return "El archivo de audio '" + audioName + ".wav' no existe.";
+		}
 		AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
 		Clip clip = AudioSystem.getClip();
 		clip.open(audioStream);
 		clip.start();
 
-	}
-
-	public boolean audioExists(String audioName) {
-		// buscar audio en ambas carpetas
-		File recordedAudio = new File(RECORDED_AUDIO_PATH + audioName + ".wav");
-		File receivedAudio = new File(RECEIVED_AUDIO_PATH + audioName + ".wav");
-		return recordedAudio.exists() || receivedAudio.exists();
+		return "Reproduciendo " + audioName + ".wav...";
 	}
 
 	public File searchAudio(String audioName) {
@@ -36,5 +33,9 @@ public class AudioPlayer {
 		} else {
 			return null;
 		}
+	}
+
+	public boolean audioExists(String audioName) {
+		return searchAudio(audioName) != null;
 	}
 }

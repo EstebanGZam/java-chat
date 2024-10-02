@@ -14,6 +14,7 @@ public class ChatManager {
 	private final Map<String, ClientHandler> clients = new HashMap<>();
 	private final Map<BigInteger, Message> messageHistory = new HashMap<>();
 	private final Map<String, Group> groups = new HashMap<>();
+	public static final String AUDIOS_FOLDER = "./resources/server/audio/";
 
 	/**
 	 * Returns the single instance of the {@link ChatManager}.
@@ -149,7 +150,7 @@ public class ChatManager {
 			Group group = groups.get(groupName);
 			for (String member : group.getMembers()) {
 				if (clients.containsKey(member)) {
-					clients.get(member).sendResponse(sender + " (en grupo " + groupName + "): " + message);
+					clients.get(member).sendTextResponse(sender + " (en grupo " + groupName + "): " + message);
 				}
 			}
 		}

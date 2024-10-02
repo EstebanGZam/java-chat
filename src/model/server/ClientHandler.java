@@ -4,6 +4,7 @@ import model.manager.ChatManager;
 import model.messages.Message;
 
 import java.io.*;
+import java.net.Socket;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,9 +32,11 @@ public class ClientHandler implements Runnable {
 	 */
 	private final BufferedReader reader;
 
+	private final Socket clientSocket;
 
-	public ClientHandler(String username, BufferedReader reader, PrintWriter writer) {
+	public ClientHandler(String username, Socket clientSocket, BufferedReader reader, PrintWriter writer) {
 		this.username = username;
+		this.clientSocket = clientSocket;
 		this.reader = reader;
 		this.writer = writer;
 	}
@@ -58,9 +61,12 @@ public class ClientHandler implements Runnable {
 					processTextMessage(message.trim());
 				} else if (header.equals("AUDIO")) {
 					String clientsInCommunication = reader.readLine();
-					String targetUser = clientsInCommunication.split(":::")[0];
-					String sourceUser = clientsInCommunication.split(":::")[1];
-					processAudioMessage();
+					String[] communicationParts = clientsInCommunication.split(":::");
+					String sourceUser = communicationParts[0];
+					String targetUser = communicationParts[1];
+					String audioName = reader.readLine();
+					File audio = receiveAudio(audioName);
+					sendAudio(sourceUser, targetUser, audio);
 				}
 			} catch (IOException e) {
 				System.out.println("'" + this.username + "' se ha desconectado del chat.");
@@ -70,8 +76,66 @@ public class ClientHandler implements Runnable {
 		}
 	}
 
-	private void processAudioMessage() {
+	private void sendAudio(String sourceUser, String targetUser, File audioFile) {
+		try {
+			ClientHandler targetClient = chatManager.getClient(targetUser);
+			Socket targetSocket = targetClient.getClientSocket();
 
+			targetClient.getWriter().println("AUDIO");
+			targetClient.getWriter().println(sourceUser);
+			targetClient.getWriter().println(audioFile.getName());
+			targetClient.getWriter().flush();
+
+			FileInputStream fis = new FileInputStream(audioFile);
+			BufferedOutputStream bos = new BufferedOutputStream(targetSocket.getOutputStream());
+			DataOutputStream dos = new DataOutputStream(bos);
+
+			long fileSize = audioFile.length();
+			dos.writeLong(fileSize); // Enviar el tamaño del archivo
+			dos.flush();
+
+			byte[] buffer = new byte[1024];
+			int bytes;
+			while ((bytes = fis.read(buffer)) != -1) {
+				bos.write(buffer, 0, bytes);
+			}
+
+			bos.flush();
+			fis.close();
+		} catch (IOException e) {
+			System.out.println("Error al reenviar el archivo de audio: " + e.getMessage());
+		}
+	}
+
+	private File receiveAudio(String audioName) {
+		File audioFile = null;
+		try {
+			// Para leer audio o datos binarios
+			DataInputStream dataInputStream = new DataInputStream(this.clientSocket.getInputStream());
+			long fileSize = dataInputStream.readLong(); // Leer el tamaño del archivo
+			byte[] buffer = new byte[1024];
+			int bytesRead;
+			long totalBytesRead = 0;
+			// Crear la carpeta si no existe
+			File audioFolder = new File(ChatManager.AUDIOS_FOLDER);
+			if (!audioFolder.exists()) {
+				audioFolder.mkdirs(); // Crea la carpeta y las subcarpetas si no existen
+			}
+			audioFile = new File(ChatManager.AUDIOS_FOLDER + audioName); // Guardar el archivo con un nombre
+			FileOutputStream fos = new FileOutputStream(audioFile);
+			BufferedOutputStream bos = new BufferedOutputStream(fos);
+
+			while (totalBytesRead < fileSize && (bytesRead = dataInputStream.read(buffer)) != -1) {
+				bos.write(buffer, 0, bytesRead);
+				totalBytesRead += bytesRead;
+			}
+
+			bos.flush();
+			bos.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return audioFile;
 	}
 
 	private void processTextMessage(String message) {
@@ -112,7 +176,7 @@ public class ClientHandler implements Runnable {
 		if (chatManager.isUserInGroup(username, groupName)) {
 			chatManager.sendGroupMessage(groupName, username, message);
 		} else {
-			sendResponse("No eres miembro del grupo '" + groupName + "'. Únete al grupo antes de enviar mensajes.");
+			sendTextResponse("No eres miembro del grupo '" + groupName + "'. Únete al grupo antes de enviar mensajes.");
 		}
 	}
 
@@ -123,13 +187,13 @@ public class ClientHandler implements Runnable {
 		String message = instruction.substring(parts[0].length() + parts[1].length() + 2);
 
 		if (!chatManager.clientExists(receiver)) {
-			sendResponse("El usuario '" + receiver + "' no existe.");
+			sendTextResponse("El usuario '" + receiver + "' no existe.");
 		} else if (receiver.equals(sender)) {
-			sendResponse("No puedes enviarte mensajes a ti mismo.");
+			sendTextResponse("No puedes enviarte mensajes a ti mismo.");
 		} else {
 			ClientHandler receiverClientHandler = chatManager.getClient(receiver);
-			receiverClientHandler.sendResponse(sender + " >>>  " + message);
-			sendResponse("Mensaje enviado a '" + receiver + "'.");
+			receiverClientHandler.sendTextResponse(sender + " >>>  " + message);
+			sendTextResponse("Mensaje enviado a '" + receiver + "'.");
 			chatManager.saveMessage(sender, receiver, message);
 		}
 	}
@@ -140,7 +204,7 @@ public class ClientHandler implements Runnable {
 	private void showHistory() {
 		List<Message> messages = chatManager.getMessageHistory();
 		for (Message savedMessage : messages) {
-			sendResponse(savedMessage.toString());
+			sendTextResponse(savedMessage.toString());
 		}
 	}
 
@@ -152,15 +216,15 @@ public class ClientHandler implements Runnable {
 	private void createGroup(String instruction) {
 		String[] parts = instruction.split(" ");
 		if (parts.length != 2) {
-			sendResponse("Comando inválido. Use: /createGroup <nombre_del_grupo>");
+			sendTextResponse("Comando inválido. Use: /createGroup <nombre_del_grupo>");
 			return;
 		}
 		String groupName = parts[1];
 		if (chatManager.groupExists(groupName)) {
-			sendResponse("El grupo '" + groupName + "' ya existe.");
+			sendTextResponse("El grupo '" + groupName + "' ya existe.");
 		} else {
 			chatManager.createGroup(groupName);
-			sendResponse("Grupo '" + groupName + "' creado exitosamente.");
+			sendTextResponse("Grupo '" + groupName + "' creado exitosamente.");
 		}
 	}
 
@@ -173,14 +237,14 @@ public class ClientHandler implements Runnable {
 	private void joinGroup(String sender, String instruction) {
 		String[] parts = instruction.split(" ");
 		if (parts.length != 2) {
-			sendResponse("Comando inválido. Use: /joinGroup <nombre_del_grupo>");
+			sendTextResponse("Comando inválido. Use: /joinGroup <nombre_del_grupo>");
 			return;
 		}
 		String groupName = parts[1];
 		if (chatManager.joinGroup(groupName, sender)) {
-			sendResponse("Te has unido al grupo '" + groupName + "' exitosamente.");
+			sendTextResponse("Te has unido al grupo '" + groupName + "' exitosamente.");
 		} else {
-			sendResponse("No se pudo unir al grupo '" + groupName + "'. El grupo no existe.");
+			sendTextResponse("No se pudo unir al grupo '" + groupName + "'. El grupo no existe.");
 		}
 	}
 
@@ -191,7 +255,7 @@ public class ClientHandler implements Runnable {
 	private void listGroups() {
 		Map<String, Set<String>> groupsInfo = chatManager.getGroupsWithMembers();
 		if (groupsInfo.isEmpty()) {
-			sendResponse("No hay grupos creados actualmente.");
+			sendTextResponse("No hay grupos creados actualmente.");
 		} else {
 			StringBuilder response = new StringBuilder("Grupos existentes y sus miembros:\n");
 			for (Map.Entry<String, Set<String>> entry : groupsInfo.entrySet()) {
@@ -204,7 +268,7 @@ public class ClientHandler implements Runnable {
 					}
 				}
 			}
-			sendResponse(response.toString());
+			sendTextResponse(response.toString());
 		}
 	}
 
@@ -213,10 +277,18 @@ public class ClientHandler implements Runnable {
 	 *
 	 * @param message The message to send to the client.
 	 */
-	public void sendResponse(String message) {
+	public void sendTextResponse(String message) {
 		for (String line : message.split("\n")) {
 			writer.println("TEXT");
 			writer.println(line);
 		}
+	}
+
+	public Socket getClientSocket() {
+		return clientSocket;
+	}
+
+	public PrintWriter getWriter() {
+		return writer;
 	}
 }

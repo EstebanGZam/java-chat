@@ -210,21 +210,29 @@ public class Client {
 	 */
 	public void processInstruction(String instruction) {
 		String audioName = "";
+		instruction = instruction.trim();
 		if (instruction.startsWith("/record")) {
-			String username = instruction.split(" ")[1];
+			String targetUser = instruction.split(" ")[1];
 			SecureRandom secureRandom = new SecureRandom();
-			audioName = "aud-from-" + username + "-" + (10000 + secureRandom.nextInt(90000));
-			startAudioRecording(audioName);
+			audioName = "aud-from-" + this.username + "-" + (10000 + secureRandom.nextInt(90000));
+			startAudioRecording(targetUser, audioName);
 		} else if (instruction.startsWith("/stop-audio")) {
 			if (!audioRecorder.isRecording()) {
 				System.out.println("No hay audio en reproducción.");
 			} else {
 				stopAudioRecording();
-				sendAudio(username, audioName);
+				String targetUser = audioRecorder.getCurrentTarget();
+				audioName = audioRecorder.getReceivedAudioName();
+				sendAudio(targetUser, audioName);
 			}
 		} else if (instruction.startsWith("/play")) {
-			audioName = instruction.split(" ")[1];
-			playAudio(audioName);
+			if (instruction.split(" ").length < 2) {
+				System.out.println();
+				System.out.println("Debes introducir el nombre del archivo de audio a reproducir.");
+			} else {
+				audioName = instruction.split(" ")[1];
+				playAudio(audioName);
+			}
 		} else {
 			communicationBroker.processInstruction(this.username, instruction);
 		}
@@ -264,7 +272,7 @@ public class Client {
 		}
 	}
 
-	private void startAudioRecording(String audioName) {
+	private void startAudioRecording(String targetUser, String audioName) {
 		if (audioName == null || audioName.isEmpty()) {
 			System.out.println("Por favor, ingrese un nombre para el archivo de audio.");
 			return;
@@ -275,7 +283,7 @@ public class Client {
 			return;
 		}
 
-		audioRecorder.startRecording(audioName);
+		audioRecorder.startRecording(targetUser, audioName);
 		System.out.println("Grabando audio...");
 
 	}
@@ -292,8 +300,7 @@ public class Client {
 		}
 
 		try {
-			audioPlayer.playAudio(audioName);
-			System.out.println("Reproduciendo " + audioName + ".wav...");
+			System.out.println(audioPlayer.playAudio(audioName));
 		} catch (LineUnavailableException | IOException | UnsupportedAudioFileException e) {
 			System.out.println("Error al reproducir el archivo de audio.");
 			System.out.println(e.getMessage());

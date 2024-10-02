@@ -3,6 +3,9 @@ package communication;
 import java.io.*;
 import java.net.Socket;
 
+import static model.client.Client.RECEIVED_AUDIO_PATH;
+import static model.client.Client.RECORDED_AUDIO_PATH;
+
 public class CommunicationBrokerI implements CommunicationBroker {
 	private final Socket clientSocket;
 	private final BufferedReader socketReader;
@@ -125,24 +128,18 @@ public class CommunicationBrokerI implements CommunicationBroker {
 		writer.println(instruction); // Enviar el mensaje de texto
 	}
 
-	/**
-	 * Shows the history of messages sent in the chat.
-	 * <p>
-	 * This method takes a string instruction and sends it to the server for get the messages history.
-	 * <p>
-	 *
-	 * @param historialRequest the instruction "/getHistory"
-	 */
-	@Override
-	public void showHistory(String historialRequest) {
-		writer.println("TEXT"); // Enviar encabezado indicando que es un mensaje de texto
-		writer.println(historialRequest); // Enviar el historial
-	}
-
 	@Override
 	public void sendAudio(String sourceUser, String targetUser, File audioFile) throws IOException {
 		writer.println("AUDIO"); // Enviar encabezado indicando que es audio
 		writer.println(sourceUser + ":::" + targetUser); // Enviar el nombre del usuario
+		String audioFileName = audioFile.getName();
+
+
+		System.out.println(audioFileName);
+
+
+		writer.println(audioFileName); // Enviar el nombre del archivo de audio
+
 		FileInputStream fis = new FileInputStream(audioFile);
 		BufferedOutputStream bos = new BufferedOutputStream(this.clientSocket.getOutputStream());
 		DataOutputStream dos = new DataOutputStream(bos);
@@ -164,24 +161,26 @@ public class CommunicationBrokerI implements CommunicationBroker {
 	// Method to receive an audio file
 	private void receiveAudio() {
 		try {
+			String sourceUser = socketReader.readLine();
+			String audioFileName = socketReader.readLine();
 			// Para leer audio o datos binarios
-			DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
-			long fileSize = dataInputStream.readLong(); // Leer el tamaño del archivo
+			DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
+			long fileSize = dis.readLong(); // Leer el tamaño del archivo
 			byte[] buffer = new byte[1024];
 			int bytesRead;
 			long totalBytesRead = 0;
-			File audioFile = new File("received_audio.wav"); // Guardar el archivo con un nombre
+			File audioFile = new File(RECEIVED_AUDIO_PATH + audioFileName); // Guardar el archivo con un nombre
 			FileOutputStream fos = new FileOutputStream(audioFile);
 			BufferedOutputStream bos = new BufferedOutputStream(fos);
 
-			while (totalBytesRead < fileSize && (bytesRead = dataInputStream.read(buffer)) != -1) {
+			while (totalBytesRead < fileSize && (bytesRead = dis.read(buffer)) != -1) {
 				bos.write(buffer, 0, bytesRead);
 				totalBytesRead += bytesRead;
 			}
 
 			bos.flush();
 			bos.close();
-			System.out.println("Audio recibido completamente.");
+			System.out.println("Audio recibido de '" + sourceUser + "'. Para reproducirlo, escriba el comando: '/play " + audioFileName + "'");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -215,5 +214,19 @@ public class CommunicationBrokerI implements CommunicationBroker {
 		writer.close();
 		socketReader.close();
 		clientSocket.close();
+	}
+
+	/**
+	 * Shows the history of messages sent in the chat.
+	 * <p>
+	 * This method takes a string instruction and sends it to the server for get the messages history.
+	 * <p>
+	 *
+	 * @param historialRequest the instruction "/getHistory"
+	 */
+	@Override
+	public void showHistory(String historialRequest) {
+		writer.println("TEXT"); // Enviar encabezado indicando que es un mensaje de texto
+		writer.println(historialRequest); // Enviar el historial
 	}
 }

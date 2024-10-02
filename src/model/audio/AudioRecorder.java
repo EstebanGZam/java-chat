@@ -18,6 +18,9 @@ public class AudioRecorder {
 	public static final boolean SIGNED = true;
 	public static final boolean BIG_ENDIAN = true;
 
+	private String currentTarget;
+	private String receivedAudioName;
+
 	public AudioRecorder() {
 		this.format = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE_IN_BITS, CHANNELS, SIGNED, BIG_ENDIAN);
 		this.isRecording = false;
@@ -32,7 +35,9 @@ public class AudioRecorder {
 		}
 	}
 
-	public void startRecording(String audioName) {
+	public void startRecording(String targetUser, String audioName) {
+		this.currentTarget = targetUser;
+		this.receivedAudioName = audioName;
 		new Thread(() -> {
 			try {
 				DataLine.Info infoMicrophone = new DataLine.Info(TargetDataLine.class, format);
@@ -65,4 +70,11 @@ public class AudioRecorder {
 		return isRecording;
 	}
 
+	public String getCurrentTarget() {
+		return currentTarget;
+	}
+
+	public String getReceivedAudioName() {
+		return receivedAudioName;
+	}
 }
