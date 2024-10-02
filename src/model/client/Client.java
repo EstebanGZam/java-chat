@@ -6,6 +6,8 @@ import model.audio.AudioPlayer;
 import model.audio.AudioRecorder;
 import model.server.Server;
 
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -212,21 +214,17 @@ public class Client {
 			String username = instruction.split(" ")[1];
 			SecureRandom secureRandom = new SecureRandom();
 			audioName = "aud-from-" + username + "-" + (10000 + secureRandom.nextInt(90000));
-			audioRecorder.startRecording(audioName);
+			startAudioRecording(audioName);
 		} else if (instruction.startsWith("/stop-audio")) {
 			if (!audioRecorder.isRecording()) {
 				System.out.println("No hay audio en reproducción.");
 			} else {
-				audioRecorder.stopRecording();
+				stopAudioRecording();
 				sendAudio(username, audioName);
 			}
 		} else if (instruction.startsWith("/play")) {
 			audioName = instruction.split(" ")[1];
-			try {
-				audioPlayer.playAudio(audioName);
-			} catch (Exception ignored) {
-				System.out.println("Error al reproducir el audio.");
-			}
+			playAudio(audioName);
 		} else {
 			communicationBroker.processInstruction(this.username, instruction);
 		}
@@ -265,5 +263,51 @@ public class Client {
 			}
 		}
 	}
+
+	private void startAudioRecording(String audioName) {
+		if (audioName == null || audioName.isEmpty()) {
+			System.out.println("Por favor, ingrese un nombre para el archivo de audio.");
+			return;
+		}
+
+		if (audioRecorder.isRecording()) {
+			System.out.println("Ya se está grabando un audio.");
+			return;
+		}
+
+		audioRecorder.startRecording(audioName);
+		System.out.println("Grabando audio...");
+
+	}
+
+	private void playAudio(String audioName) {
+		if (audioRecorder.isRecording()) {
+			System.out.println("No puedes reproducir un audio mientras se está grabando.");
+			return;
+		}
+
+		if (!audioPlayer.audioExists(audioName)) {
+			System.out.println("El archivo de audio '" + audioName + ".wav' no existe.");
+			return;
+		}
+
+		try {
+			audioPlayer.playAudio(audioName);
+			System.out.println("Reproduciendo " + audioName + ".wav...");
+		} catch (LineUnavailableException | IOException | UnsupportedAudioFileException e) {
+			System.out.println("Error al reproducir el archivo de audio.");
+			System.out.println(e.getMessage());
+		}
+	}
+
+	private void stopAudioRecording() {
+		if (!audioRecorder.isRecording()) {
+			System.out.println("No se está grabando ningún audio.");
+		} else {
+			audioRecorder.stopRecording();
+			System.out.println("Grabación de audio detenida.");
+		}
+	}
+
 }
 

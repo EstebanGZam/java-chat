@@ -55,7 +55,7 @@ public class ClientHandler implements Runnable {
 				}
 				if (header.equals("TEXT")) {
 					String message = reader.readLine();
-					processTextMessage(message);
+					processTextMessage(message.trim());
 				} else if (header.equals("AUDIO")) {
 					String clientsInCommunication = reader.readLine();
 					String targetUser = clientsInCommunication.split(":::")[0];
@@ -214,6 +214,9 @@ public class ClientHandler implements Runnable {
 	 * @param message The message to send to the client.
 	 */
 	public void sendResponse(String message) {
-		writer.println(message);
+		for (String line : message.split("\n")) {
+			writer.println("TEXT");
+			writer.println(line);
+		}
 	}
 }

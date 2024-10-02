@@ -188,21 +188,25 @@ public class CommunicationBrokerI implements CommunicationBroker {
 	}
 
 	public void createGroup(String instruction) {
+		writer.println("TEXT");
 		writer.println(instruction);
 	}
 
 	@Override
 	public void listGroups(String instruction) {
+		writer.println("TEXT");
 		writer.println(instruction);
 	}
 
 	@Override
 	public void joinGroup(String instruction) {
+		writer.println("TEXT");
 		writer.println(instruction);
 	}
 
 	@Override
 	public void sendGroupMessage(String instruction) {
+		writer.println("TEXT");
 		writer.println(instruction);
 	}
 

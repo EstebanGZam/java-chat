@@ -41,14 +41,16 @@ public class AudioRecorder {
 				microphone.start();
 				isRecording = true;
 			} catch (LineUnavailableException e) {
-				e.printStackTrace();
+				System.out.println("Error al iniciar la grabación de audio.");
+				System.out.println(e.getMessage());
 			}
 
 			audioFile = new File(RECORDED_AUDIO_PATH + audioName + ".wav");
 			try (AudioInputStream audioStream = new AudioInputStream(microphone)) {
 				AudioSystem.write(audioStream, AudioFileFormat.Type.WAVE, audioFile);
 			} catch (IOException e) {
-				e.printStackTrace();
+				System.out.println("Error al guardar el archivo de audio.");
+				System.out.println(e.getMessage());
 			}
 		}).start();
 	}
