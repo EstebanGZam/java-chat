@@ -1,10 +1,12 @@
 package communication;
 
+import model.audio.AudioReceiver;
+import model.audio.AudioSender;
+
 import java.io.*;
 import java.net.Socket;
 
 import static model.client.Client.RECEIVED_AUDIO_PATH;
-import static model.client.Client.RECORDED_AUDIO_PATH;
 
 public class CommunicationBrokerI implements CommunicationBroker {
 	private final Socket clientSocket;
@@ -134,28 +136,12 @@ public class CommunicationBrokerI implements CommunicationBroker {
 		writer.println(sourceUser + ":::" + targetUser); // Enviar el nombre del usuario
 		String audioFileName = audioFile.getName();
 
-
 		System.out.println(audioFileName);
-
 
 		writer.println(audioFileName); // Enviar el nombre del archivo de audio
 
-		FileInputStream fis = new FileInputStream(audioFile);
-		BufferedOutputStream bos = new BufferedOutputStream(this.clientSocket.getOutputStream());
-		DataOutputStream dos = new DataOutputStream(bos);
-
-		long fileSize = audioFile.length();
-		dos.writeLong(fileSize); // Enviar el tamaño del archivo
-		dos.flush();
-
-		byte[] buffer = new byte[1024];
-		int bytes;
-		while ((bytes = fis.read(buffer)) != -1) {
-			bos.write(buffer, 0, bytes);
-		}
-
-		bos.flush();
-		fis.close();
+		AudioSender audioSender = new AudioSender();
+		audioSender.sendAudio(clientSocket, audioFile);
 	}
 
 	// Method to receive an audio file
@@ -164,23 +150,11 @@ public class CommunicationBrokerI implements CommunicationBroker {
 			String sourceUser = socketReader.readLine();
 			String audioFileName = socketReader.readLine();
 			// Para leer audio o datos binarios
-			DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
-			long fileSize = dis.readLong(); // Leer el tamaño del archivo
-			byte[] buffer = new byte[1024];
-			int bytesRead;
-			long totalBytesRead = 0;
-			File audioFile = new File(RECEIVED_AUDIO_PATH + audioFileName); // Guardar el archivo con un nombre
-			FileOutputStream fos = new FileOutputStream(audioFile);
-			BufferedOutputStream bos = new BufferedOutputStream(fos);
-
-			while (totalBytesRead < fileSize && (bytesRead = dis.read(buffer)) != -1) {
-				bos.write(buffer, 0, bytesRead);
-				totalBytesRead += bytesRead;
+			AudioReceiver audioReceiver = new AudioReceiver();
+			File audioFile = audioReceiver.receiveAudio(audioFileName, RECEIVED_AUDIO_PATH, clientSocket);
+			if (audioFile != null) {
+				System.out.println("Audio recibido de '" + sourceUser + "'. Para reproducirlo, escriba el comando: '/play " + audioFileName + "'");
 			}
-
-			bos.flush();
-			bos.close();
-			System.out.println("Audio recibido de '" + sourceUser + "'. Para reproducirlo, escriba el comando: '/play " + audioFileName + "'");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

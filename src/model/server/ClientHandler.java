@@ -1,5 +1,7 @@
 package model.server;
 
+import model.audio.AudioReceiver;
+import model.audio.AudioSender;
 import model.manager.ChatManager;
 import model.messages.Message;
 
@@ -86,22 +88,8 @@ public class ClientHandler implements Runnable {
 			targetClient.getWriter().println(audioFile.getName());
 			targetClient.getWriter().flush();
 
-			FileInputStream fis = new FileInputStream(audioFile);
-			BufferedOutputStream bos = new BufferedOutputStream(targetSocket.getOutputStream());
-			DataOutputStream dos = new DataOutputStream(bos);
-
-			long fileSize = audioFile.length();
-			dos.writeLong(fileSize); // Enviar el tamaño del archivo
-			dos.flush();
-
-			byte[] buffer = new byte[1024];
-			int bytes;
-			while ((bytes = fis.read(buffer)) != -1) {
-				bos.write(buffer, 0, bytes);
-			}
-
-			bos.flush();
-			fis.close();
+			AudioSender audioSender = new AudioSender();
+			audioSender.sendAudio(targetSocket, audioFile);
 		} catch (IOException e) {
 			System.out.println("Error al reenviar el archivo de audio: " + e.getMessage());
 		}
@@ -110,28 +98,8 @@ public class ClientHandler implements Runnable {
 	private File receiveAudio(String audioName) {
 		File audioFile = null;
 		try {
-			// Para leer audio o datos binarios
-			DataInputStream dataInputStream = new DataInputStream(this.clientSocket.getInputStream());
-			long fileSize = dataInputStream.readLong(); // Leer el tamaño del archivo
-			byte[] buffer = new byte[1024];
-			int bytesRead;
-			long totalBytesRead = 0;
-			// Crear la carpeta si no existe
-			File audioFolder = new File(ChatManager.AUDIOS_FOLDER);
-			if (!audioFolder.exists()) {
-				audioFolder.mkdirs(); // Crea la carpeta y las subcarpetas si no existen
-			}
-			audioFile = new File(ChatManager.AUDIOS_FOLDER + audioName); // Guardar el archivo con un nombre
-			FileOutputStream fos = new FileOutputStream(audioFile);
-			BufferedOutputStream bos = new BufferedOutputStream(fos);
-
-			while (totalBytesRead < fileSize && (bytesRead = dataInputStream.read(buffer)) != -1) {
-				bos.write(buffer, 0, bytesRead);
-				totalBytesRead += bytesRead;
-			}
-
-			bos.flush();
-			bos.close();
+			AudioReceiver audioReceiver = new AudioReceiver();
+			audioFile = audioReceiver.receiveAudio(audioName, ChatManager.AUDIOS_FOLDER, this.clientSocket);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
