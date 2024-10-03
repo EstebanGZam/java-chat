@@ -4,6 +4,7 @@ import communication.CommunicationBrokerI;
 import communication.CommunicationBroker;
 import model.audio.AudioPlayer;
 import model.audio.AudioRecorder;
+import model.persistence.MessagePersistence;
 import model.server.Server;
 
 import javax.sound.sampled.LineUnavailableException;
@@ -34,6 +35,8 @@ public class Client {
 		client.connectToServer();
 		if (client.isConnected()) {
 			client.createUsername();
+			 System.out.println("\nCargando los últimos mensajes del historial...");
+            MessagePersistence.printLastMessages();
 			client.receiveMessages();
 			client.displayInstructions();
 			client.awaitAndProcessCommands();
