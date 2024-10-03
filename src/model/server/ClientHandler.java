@@ -143,17 +143,21 @@ public class ClientHandler implements Runnable {
 	private void sendGroupMessage(String groupName, String message) {
 		if (chatManager.isUserInGroup(username, groupName)) {
 			chatManager.sendGroupMessage(groupName, username, message);
+	
+			
+			chatManager.saveMessage(username, groupName, message);
+	
 		} else {
 			sendTextResponse("No eres miembro del grupo '" + groupName + "'. Únete al grupo antes de enviar mensajes.");
 		}
 	}
-
+	
 
 	private void sendMessageToAnotherClient(String sender, String instruction) {
 		String[] parts = instruction.split(" ");
 		String receiver = parts[1];
 		String message = instruction.substring(parts[0].length() + parts[1].length() + 2);
-
+	
 		if (!chatManager.clientExists(receiver)) {
 			sendTextResponse("El usuario '" + receiver + "' no existe.");
 		} else if (receiver.equals(sender)) {
@@ -162,9 +166,12 @@ public class ClientHandler implements Runnable {
 			ClientHandler receiverClientHandler = chatManager.getClient(receiver);
 			receiverClientHandler.sendTextResponse(sender + " >>>  " + message);
 			sendTextResponse("Mensaje enviado a '" + receiver + "'.");
-			chatManager.saveMessage(sender, receiver, message);
+	
+			// Guardar el mensaje en el historial (archivo txt)
+			  chatManager.saveMessage(sender, receiver, message);
 		}
 	}
+	
 
 	/**
 	 * Shows the message history to the client.

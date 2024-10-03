@@ -3,6 +3,7 @@ package model.manager;
 import model.group.Group;
 import model.audio.Audio;
 import model.messages.Message;
+import model.persistence.MessagePersistence;
 import model.server.ClientHandler;
 
 import java.math.BigInteger;
@@ -78,7 +79,11 @@ public class ChatManager {
 		messageHistory.put(
 				messagesID = messagesID.add(BigInteger.ONE), // Increment the ID before saving
 				newMessage);
+	
+	    
+		MessagePersistence.saveMessage(sender, receiver, message);  
 	}
+	
 
 	/**
 	 * Unregisters a client with the given username.
@@ -154,6 +159,7 @@ public class ChatManager {
 				}
 			}
 		}
+		saveMessage(sender, groupName, message);
 	}
 
 	public boolean isUserInGroup(String username, String groupName) {

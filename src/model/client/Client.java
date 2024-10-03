@@ -82,7 +82,7 @@ public class Client {
 		System.out.println("Para detener la grabación de audio, escribe: /stop-audio");
 //		System.out.println("Para enviar un mensaje de audio, escribe: /send-audio <nombre_audio> <usuario_destino>");
 		System.out.println("Para reproducir un mensaje de audio, escribe: /play <nombre_audio>");
-		System.out.println("Para salir ver el historial de mensajes, escribe: /msgHistory");
+//		System.out.println("Para salir ver el historial de mensajes, escribe: /msgHistory");
 		System.out.println("Para salir del chat, escribe: exit");
 		System.out.println(
 				"----------------------------------------------------------------------------------------------");
