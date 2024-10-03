@@ -62,10 +62,10 @@ public class CallMember {
         speaker.close();
     }
 
-    public void talk(Socket clientSocket) throws IOException {
+    public void talk(Socket socket) throws IOException {
         startMicrophone();
 
-        OutputStream os = clientSocket.getOutputStream();
+        OutputStream os = socket.getOutputStream();
         BufferedOutputStream bos = new BufferedOutputStream(os);
 
         while (true) {
@@ -76,10 +76,10 @@ public class CallMember {
         }
     }
 
-    public void listen(Socket clientSocket) throws IOException {
+    public void listen(Socket socket) throws IOException {
         startSpeaker();
 
-        InputStream is = clientSocket.getInputStream();
+        InputStream is = socket.getInputStream();
         BufferedInputStream bis = new BufferedInputStream(is);
 
         while (true) {

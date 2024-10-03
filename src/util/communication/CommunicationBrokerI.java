@@ -2,8 +2,6 @@ package util.communication;
 
 import util.audio.AudioReceiver;
 import util.audio.AudioSender;
-import model.calls.Call;
-import model.calls.CallMember;
 
 import java.io.*;
 import java.net.Socket;
@@ -92,6 +90,7 @@ public class CommunicationBrokerI implements CommunicationBroker {
 			return "Audio ";
 		} else if ("CALL".equals(header)) {
 			// Recibir y procesar la llamada
+
 			return "Call ";
 		} else {
 			// Manejar casos donde el tipo de mensaje no es reconocido
@@ -272,10 +271,6 @@ public class CommunicationBrokerI implements CommunicationBroker {
 	public void sendCallRequest(String instruction) {
 		writer.println("CALL");
 		writer.println(instruction);
-	}
-
-	public void startCall(String sourceUser) {
-
 	}
 
 }

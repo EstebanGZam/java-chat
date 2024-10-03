@@ -6,9 +6,6 @@ import util.audio.AudioPlayer;
 import util.audio.AudioRecorder;
 import model.persistence.MessagePersistence;
 import model.server.Server;
-import model.calls.Call;
-import model.calls.CallMember;
-import model.server.ClientHandler;
 
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
