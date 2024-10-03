@@ -39,11 +39,17 @@ public class ClientHandler implements Runnable {
 		this.writer = writer;
 	}
 
+	/**
+	 * Starts the client handler loop that receives messages from the client.
+	 */
 	@Override
 	public void run() {
 		receiveMessage();
 	}
 
+	/**
+	 * Receives messages from the client and processes them.
+	 */
 	public void receiveMessage() {
 		String header;
 		boolean receiving = true;
@@ -74,6 +80,13 @@ public class ClientHandler implements Runnable {
 		}
 	}
 
+	/**
+	 * Sends an audio file to another user.
+	 *
+	 * @param sourceUser username of the user sending the audio
+	 * @param targetUser username of the user receiving the audio
+	 * @param audioFile  file containing the audio to send
+	 */
 	private void sendAudio(String sourceUser, String targetUser, File audioFile) {
 		try {
 			ClientHandler targetClient = chatManager.getClient(targetUser);

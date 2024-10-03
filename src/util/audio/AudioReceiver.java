@@ -5,6 +5,17 @@ import java.util.Base64;
 
 public class AudioReceiver {
 
+	/**
+	 * Utility class for receiving audio files from a socket connection.
+	 * This class decodes Base64 encoded strings received from a socket connection
+	 * and saves the decoded bytes to a file.
+	 *
+	 * @param audioFileName   the name of the audio file to be saved
+	 * @param destinationPath the path where the audio file will be saved
+	 *                        (the directory will be created if it doesn't exist)
+	 * @param in              the socket input stream
+	 * @throws IOException if there's an error with network communication
+	 */
 	public File receiveAudio(String audioFileName, String destinationPath, BufferedReader in) throws IOException {
 		File audioFile = null;
 
