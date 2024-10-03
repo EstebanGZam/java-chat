@@ -1,9 +1,9 @@
 package model.client;
 
-import communication.CommunicationBrokerI;
-import communication.CommunicationBroker;
-import model.audio.AudioPlayer;
-import model.audio.AudioRecorder;
+import util.communication.CommunicationBrokerI;
+import util.communication.CommunicationBroker;
+import util.audio.AudioPlayer;
+import util.audio.AudioRecorder;
 import model.persistence.MessagePersistence;
 import model.server.Server;
 
@@ -212,7 +212,7 @@ public class Client {
 	 * @param instruction the instruction or message to be processed
 	 */
 	public void processInstruction(String instruction) {
-		String audioName = "";
+		String audioName;
 		instruction = instruction.trim();
 		if (instruction.startsWith("/record")) {
 			String targetUser = instruction.split(" ")[1];

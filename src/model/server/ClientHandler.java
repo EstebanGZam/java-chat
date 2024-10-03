@@ -1,12 +1,11 @@
 package model.server;
 
-import model.audio.AudioReceiver;
-import model.audio.AudioSender;
+import util.audio.AudioReceiver;
+import util.audio.AudioSender;
 import model.manager.ChatManager;
 import model.messages.Message;
 
 import java.io.*;
-import java.net.Socket;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,11 +33,8 @@ public class ClientHandler implements Runnable {
 	 */
 	private final BufferedReader reader;
 
-	private final Socket clientSocket;
-
-	public ClientHandler(String username, Socket clientSocket, BufferedReader reader, PrintWriter writer) {
+	public ClientHandler(String username, BufferedReader reader, PrintWriter writer) {
 		this.username = username;
-		this.clientSocket = clientSocket;
 		this.reader = reader;
 		this.writer = writer;
 	}
@@ -257,10 +253,6 @@ public class ClientHandler implements Runnable {
 			writer.println("TEXT");
 			writer.println(line);
 		}
-	}
-
-	public Socket getClientSocket() {
-		return clientSocket;
 	}
 
 	public PrintWriter getWriter() {

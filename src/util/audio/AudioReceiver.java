@@ -1,4 +1,4 @@
-package model.audio;
+package util.audio;
 
 import java.io.*;
 import java.util.Base64;

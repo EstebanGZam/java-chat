@@ -1,7 +1,7 @@
-package communication;
+package util.communication;
 
-import model.audio.AudioReceiver;
-import model.audio.AudioSender;
+import util.audio.AudioReceiver;
+import util.audio.AudioSender;
 
 import java.io.*;
 import java.net.Socket;
