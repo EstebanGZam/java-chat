@@ -141,7 +141,7 @@ public class CommunicationBrokerI implements CommunicationBroker {
 		writer.println(audioFileName); // Enviar el nombre del archivo de audio
 
 		AudioSender audioSender = new AudioSender();
-		audioSender.sendAudio(clientSocket, audioFile);
+		audioSender.sendAudio(writer, audioFile);
 	}
 
 	// Method to receive an audio file
@@ -151,7 +151,7 @@ public class CommunicationBrokerI implements CommunicationBroker {
 			String audioFileName = socketReader.readLine();
 			// Para leer audio o datos binarios
 			AudioReceiver audioReceiver = new AudioReceiver();
-			File audioFile = audioReceiver.receiveAudio(audioFileName, RECEIVED_AUDIO_PATH, clientSocket);
+			File audioFile = audioReceiver.receiveAudio(audioFileName, RECEIVED_AUDIO_PATH, socketReader);
 			if (audioFile != null) {
 				System.out.println("Audio recibido de '" + sourceUser + "'. Para reproducirlo, escriba el comando: '/play " + audioFileName + "'");
 			}

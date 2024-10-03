@@ -1,26 +1,34 @@
 package model.audio;
 
 import java.io.*;
-import java.net.Socket;
+import java.util.Base64;
 
 public class AudioSender {
 
-	public void sendAudio(Socket clientSocket, File audioFile) throws IOException {
-		FileInputStream fis = new FileInputStream(audioFile);
-		BufferedOutputStream bos = new BufferedOutputStream(clientSocket.getOutputStream());
-		DataOutputStream dos = new DataOutputStream(bos);
+	public void sendAudio(PrintWriter out, File audioFile) throws IOException {
+		try {
+			// Leer archivo binario
+			FileInputStream fileInputStream = new FileInputStream(audioFile);
+			byte[] fileBytes = new byte[(int) audioFile.length()];
+			int bytesRead = fileInputStream.read(fileBytes);
+			if (bytesRead == -1) {
+				throw new IOException("Error al leer el archivo de audio.");
+			}
+			fileInputStream.close();
 
-		long fileSize = audioFile.length();
-		dos.writeLong(fileSize); // Enviar el tamaño del archivo
-		dos.flush();
+			// Codificar a Base64
+			String encodedString = Base64.getEncoder().encodeToString(fileBytes);
 
-		byte[] buffer = new byte[1024];
-		int bytes;
-		while ((bytes = fis.read(buffer)) != -1) {
-			bos.write(buffer, 0, bytes);
+			String[] lines = encodedString.split("\r?\n");
+			out.println(lines.length);
+
+			// Enviar la cadena codificada a través del socket
+			out.println(encodedString);  // Enviar datos codificados en Base64
+
+			System.out.println("Audio enviado correctamente.");
+
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-
-		bos.flush();
-		fis.close();
 	}
 }

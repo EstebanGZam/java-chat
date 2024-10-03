@@ -13,19 +13,19 @@ public class AudioPlayer {
 
 		File audioFile = searchAudio(audioName);
 		if (audioFile == null) {
-			return "El archivo de audio '" + audioName + ".wav' no existe.";
+			return "El archivo de audio '" + audioName + "' no existe.";
 		}
 		AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
 		Clip clip = AudioSystem.getClip();
 		clip.open(audioStream);
 		clip.start();
 
-		return "Reproduciendo " + audioName + ".wav...";
+		return "Reproduciendo " + audioName + "...";
 	}
 
 	public File searchAudio(String audioName) {
-		File recordedAudio = new File(RECORDED_AUDIO_PATH + audioName + ".wav");
-		File receivedAudio = new File(RECEIVED_AUDIO_PATH + audioName + ".wav");
+		File recordedAudio = new File(RECORDED_AUDIO_PATH + audioName);
+		File receivedAudio = new File(RECEIVED_AUDIO_PATH + audioName);
 		if (recordedAudio.exists()) {
 			return recordedAudio;
 		} else if (receivedAudio.exists()) {

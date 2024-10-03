@@ -81,15 +81,15 @@ public class ClientHandler implements Runnable {
 	private void sendAudio(String sourceUser, String targetUser, File audioFile) {
 		try {
 			ClientHandler targetClient = chatManager.getClient(targetUser);
-			Socket targetSocket = targetClient.getClientSocket();
+			PrintWriter targetWriter = targetClient.getWriter();
 
-			targetClient.getWriter().println("AUDIO");
-			targetClient.getWriter().println(sourceUser);
-			targetClient.getWriter().println(audioFile.getName());
-			targetClient.getWriter().flush();
+			targetWriter.println("AUDIO");
+			targetWriter.println(sourceUser);
+			targetWriter.println(audioFile.getName());
+			targetWriter.flush();
 
 			AudioSender audioSender = new AudioSender();
-			audioSender.sendAudio(targetSocket, audioFile);
+			audioSender.sendAudio(targetWriter, audioFile);
 		} catch (IOException e) {
 			System.out.println("Error al reenviar el archivo de audio: " + e.getMessage());
 		}
@@ -99,7 +99,7 @@ public class ClientHandler implements Runnable {
 		File audioFile = null;
 		try {
 			AudioReceiver audioReceiver = new AudioReceiver();
-			audioFile = audioReceiver.receiveAudio(audioName, ChatManager.AUDIOS_FOLDER, this.clientSocket);
+			audioFile = audioReceiver.receiveAudio(audioName, ChatManager.AUDIOS_FOLDER, this.reader);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -143,21 +143,21 @@ public class ClientHandler implements Runnable {
 	private void sendGroupMessage(String groupName, String message) {
 		if (chatManager.isUserInGroup(username, groupName)) {
 			chatManager.sendGroupMessage(groupName, username, message);
-	
-			
+
+
 			chatManager.saveMessage(username, groupName, message);
-	
+
 		} else {
 			sendTextResponse("No eres miembro del grupo '" + groupName + "'. Únete al grupo antes de enviar mensajes.");
 		}
 	}
-	
+
 
 	private void sendMessageToAnotherClient(String sender, String instruction) {
 		String[] parts = instruction.split(" ");
 		String receiver = parts[1];
 		String message = instruction.substring(parts[0].length() + parts[1].length() + 2);
-	
+
 		if (!chatManager.clientExists(receiver)) {
 			sendTextResponse("El usuario '" + receiver + "' no existe.");
 		} else if (receiver.equals(sender)) {
@@ -166,12 +166,12 @@ public class ClientHandler implements Runnable {
 			ClientHandler receiverClientHandler = chatManager.getClient(receiver);
 			receiverClientHandler.sendTextResponse(sender + " >>>  " + message);
 			sendTextResponse("Mensaje enviado a '" + receiver + "'.");
-	
+
 			// Guardar el mensaje en el historial (archivo txt)
-			  chatManager.saveMessage(sender, receiver, message);
+			chatManager.saveMessage(sender, receiver, message);
 		}
 	}
-	
+
 
 	/**
 	 * Shows the message history to the client.
