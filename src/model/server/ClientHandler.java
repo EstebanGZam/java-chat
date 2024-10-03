@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-
 public class ClientHandler implements Runnable {
 
 	/**
@@ -131,11 +130,28 @@ public class ClientHandler implements Runnable {
 			sendGroupMessage(groupName, groupMessage);
 		} else if (message.equals("/listGroups")) {
 			listGroups();
+		} else if (message.startsWith("/call")) {
+			// Send a call request to another client
+			String[] parts = message.split("<<<<<");
+			String instruction = parts[0];
+			String sender = parts[1];
+			sendCallRequest(sender, instruction);
+		} else if (message.startsWith("/acceptCall")) {
+			// Accept or reject a call request
+			String[] parts = message.split("<<<<<");
+			String sourceUser = parts[1];
+			handleCallResponse(sourceUser, true);
+		} else if (message.startsWith("/rejectCall")) {
+			// Accept or reject a call request
+			String[] parts = message.split("<<<<<");
+			String sourceUser = parts[1];
+			handleCallResponse(sourceUser, false);
 		}
 	}
 
 	/**
-	 * Sends a message to a specific group, but only if the user is a member of that group.
+	 * Sends a message to a specific group, but only if the user is a member of that
+	 * group.
 	 *
 	 * @param groupName The name of the group.
 	 * @param message   The message to be sent to the group.
@@ -147,7 +163,6 @@ public class ClientHandler implements Runnable {
 			sendTextResponse("No eres miembro del grupo '" + groupName + "'. Únete al grupo antes de enviar mensajes.");
 		}
 	}
-
 
 	private void sendMessageToAnotherClient(String sender, String instruction) {
 		String[] parts = instruction.split(" ");
@@ -240,6 +255,33 @@ public class ClientHandler implements Runnable {
 		}
 	}
 
+	private void sendCallRequest(String sender, String instruction) {
+		String[] parts = instruction.split(" ");
+		String receiver = parts[1];
+		if (!chatManager.clientExists(receiver)) {
+			sendTextResponse("El usuario '" + receiver + "' no existe.");
+		} else if (receiver.equals(sender)) {
+			sendTextResponse("No puedes llamarte a ti mismo.");
+		} else {
+			ClientHandler receiverClientHandler = chatManager.getClient(receiver);
+			receiverClientHandler.sendTextResponse(sender + " te está llamando...");
+			sendTextResponse("Llamada enviada a '" + receiver + "'. Esperando respuesta...");
+		}
+	}
+
+	public void handleCallResponse(String sourceUser, boolean accepted) {
+		ClientHandler sourceClient = chatManager.getClient(sourceUser);
+
+		if (accepted) {
+			sendTextResponse("Llamada aceptada. Iniciando...");
+			sourceClient.sendTextResponse(username + " ha aceptado la llamada.");
+
+		} else {
+			sendTextResponse("Has rechazado la llamada.");
+			sourceClient.sendTextResponse(username + " ha rechazado la llamada.");
+		}
+	}
+
 	/**
 	 * Sends a message to the client.
 	 *
@@ -258,5 +300,9 @@ public class ClientHandler implements Runnable {
 
 	public PrintWriter getWriter() {
 		return writer;
+	}
+
+	public String getUsername() {
+		return username;
 	}
 }

@@ -4,6 +4,9 @@ import communication.CommunicationBrokerI;
 import communication.CommunicationBroker;
 import model.audio.AudioPlayer;
 import model.audio.AudioRecorder;
+import model.calls.Call;
+import model.calls.CallMember;
+import model.server.ClientHandler;
 import model.server.Server;
 
 import javax.sound.sampled.LineUnavailableException;
@@ -45,7 +48,8 @@ public class Client {
 	/**
 	 * Awaits user commands and processes them until the user enters "exit".
 	 * <p>
-	 * This method displays the console cursor, waits for the user to enter a command,
+	 * This method displays the console cursor, waits for the user to enter a
+	 * command,
 	 * processes the command using the {@link #processInstruction(String)} method,
 	 * and repeats this process until the user enters the command "exit".
 	 * <p>
@@ -77,23 +81,30 @@ public class Client {
 		System.out.println("Para ver la lista de grupos existentes y sus miembros, escribe: /listGroups");
 		System.out.println("Para unirte a un grupo existente, escribe: /joinGroup <nombre_del_grupo>");
 		System.out.println("Para enviar un mensaje privado a otro cliente, escribe: /msg <usuario_destino> <mensaje>");
-		System.out.println("Para enviar un mensaje al grupo del cual es miembro, escribe /groupMsg  <nombre_del_grupo> <mensaje>");
-		System.out.println("Para grabar un mensaje de audio que se enviará a otro cliente, escribe: /record <usuario_destino>");
+		System.out.println(
+				"Para enviar un mensaje al grupo del cual es miembro, escribe /groupMsg  <nombre_del_grupo> <mensaje>");
+		System.out.println(
+				"Para grabar un mensaje de audio que se enviará a otro cliente, escribe: /record <usuario_destino>");
 		System.out.println("Para detener la grabación de audio, escribe: /stop-audio");
-//		System.out.println("Para enviar un mensaje de audio, escribe: /send-audio <nombre_audio> <usuario_destino>");
+		// System.out.println("Para enviar un mensaje de audio, escribe: /send-audio
+		// <nombre_audio> <usuario_destino>");
 		System.out.println("Para reproducir un mensaje de audio, escribe: /play <nombre_audio>");
 		System.out.println("Para salir ver el historial de mensajes, escribe: /msgHistory");
+		System.out.println("Para realizar una llamada a otro cliente, escribe: /call <usuario_destino>");
 		System.out.println("Para salir del chat, escribe: exit");
 		System.out.println(
 				"----------------------------------------------------------------------------------------------");
 	}
 
 	/**
-	 * Establishes the connection to the server, trying up to 20 times in case of failure.
-	 * If a {@link IOException} exception occurs while attempting the connection, wait 1 second
+	 * Establishes the connection to the server, trying up to 20 times in case of
+	 * failure.
+	 * If a {@link IOException} exception occurs while attempting the connection,
+	 * wait 1 second
 	 * before retrying.
 	 * <p>
-	 * If a {@link InterruptedException} interruption occurs while waiting, the connection
+	 * If a {@link InterruptedException} interruption occurs while waiting, the
+	 * connection
 	 * process is interrupted.
 	 */
 	private void connectToServer() {
@@ -118,10 +129,12 @@ public class Client {
 	}
 
 	/**
-	 * Establishes the connection with the server and creates a {@link CommunicationBrokerI} object
+	 * Establishes the connection with the server and creates a
+	 * {@link CommunicationBrokerI} object
 	 * to handle communication with the server.
 	 * <p>
-	 * Throws a {@link IOException} exception if an error occurs while attempting to connect.
+	 * Throws a {@link IOException} exception if an error occurs while attempting to
+	 * connect.
 	 *
 	 * @throws IOException If an error occurs while attempting to connect
 	 */
@@ -145,9 +158,12 @@ public class Client {
 	/**
 	 * Creates a username for the client and registers it on the server.
 	 * <p>
-	 * Prompts the user to enter a username via the console and registers it on the server.
-	 * If the username is already in use, an error message is displayed to the user, and they are prompted again.
-	 * If registration is successful, the username is saved in the {@link #username} field of the class.
+	 * Prompts the user to enter a username via the console and registers it on the
+	 * server.
+	 * If the username is already in use, an error message is displayed to the user,
+	 * and they are prompted again.
+	 * If registration is successful, the username is saved in the {@link #username}
+	 * field of the class.
 	 */
 	private void createUsername() {
 		boolean registered = false;
@@ -179,7 +195,8 @@ public class Client {
 	/**
 	 * Closes the program, closing the socket and the console reader.
 	 * <p>
-	 * If an error occurs while trying to close the socket or the reader, an error message is displayed.
+	 * If an error occurs while trying to close the socket or the reader, an error
+	 * message is displayed.
 	 * The {@link System#exit(int)} method is then called to terminate the program.
 	 */
 	private void closeProgram() {
@@ -194,7 +211,8 @@ public class Client {
 	}
 
 	/**
-	 * Displays the console cursor on the screen, showing the current username and the character " >>>  " to indicate that a command can be entered.
+	 * Displays the console cursor on the screen, showing the current username and
+	 * the character " >>> " to indicate that a command can be entered.
 	 */
 	private void showConsoleCursor() {
 		System.out.print(username + " >>>  ");
@@ -203,7 +221,8 @@ public class Client {
 	/**
 	 * Processes a command or message entered by the user.
 	 * <p>
-	 * This method forwards the instruction to the {@link CommunicationBrokerI} to be processed.
+	 * This method forwards the instruction to the {@link CommunicationBrokerI} to
+	 * be processed.
 	 * The instruction is prefixed with the username of the client.
 	 *
 	 * @param instruction the instruction or message to be processed
@@ -239,9 +258,11 @@ public class Client {
 	}
 
 	/**
-	 * Starts a thread that is responsible for receiving messages from the server and displaying them on the console.
+	 * Starts a thread that is responsible for receiving messages from the server
+	 * and displaying them on the console.
 	 * <p>
-	 * If an error occurs while receiving messages, an error message is displayed on the console and the program closes.
+	 * If an error occurs while receiving messages, an error message is displayed on
+	 * the console and the program closes.
 	 */
 	private void receiveMessages() {
 		Thread receiver = new Thread(() -> {
@@ -259,7 +280,6 @@ public class Client {
 		});
 		receiver.start();
 	}
-
 
 	private void sendAudio(String targetUser, String audioName) {
 		if (audioPlayer.audioExists(audioName)) {
@@ -317,4 +337,3 @@ public class Client {
 	}
 
 }
-

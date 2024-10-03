@@ -2,6 +2,8 @@ package communication;
 
 import model.audio.AudioReceiver;
 import model.audio.AudioSender;
+import model.calls.Call;
+import model.calls.CallMember;
 
 import java.io.*;
 import java.net.Socket;
@@ -22,7 +24,8 @@ public class CommunicationBrokerI implements CommunicationBroker {
 	/**
 	 * Initialize a BufferedReader that reads from the given clientSocket.
 	 * <p>
-	 * This method creates a BufferedReader that reads from the input stream of the given clientSocket.
+	 * This method creates a BufferedReader that reads from the input stream of the
+	 * given clientSocket.
 	 * <p>
 	 *
 	 * @param clientSocket the socket to read from
@@ -36,7 +39,8 @@ public class CommunicationBrokerI implements CommunicationBroker {
 	/**
 	 * Initialize a PrintWriter that writes to the given clientSocket.
 	 * <p>
-	 * This method creates a PrintWriter that writes to the output stream of the given clientSocket.
+	 * This method creates a PrintWriter that writes to the output stream of the
+	 * given clientSocket.
 	 * <p>
 	 *
 	 * @param clientSocket the socket to write to
@@ -52,8 +56,10 @@ public class CommunicationBrokerI implements CommunicationBroker {
 	 * <p>
 	 *
 	 * @param username the username to register
-	 * @return the response from the server, either a success message or an error message
-	 * @throws IOException if an I/O error occurs while attempting to register the client
+	 * @return the response from the server, either a success message or an error
+	 *         message
+	 * @throws IOException if an I/O error occurs while attempting to register the
+	 *                     client
 	 */
 	@Override
 	public String registerClient(String username) throws IOException {
@@ -64,11 +70,13 @@ public class CommunicationBrokerI implements CommunicationBroker {
 	/**
 	 * Receive a message from the server.
 	 * <p>
-	 * This method reads a line from the input stream of the socket and returns it as a string.
+	 * This method reads a line from the input stream of the socket and returns it
+	 * as a string.
 	 * <p>
 	 *
 	 * @return a message received from the server
-	 * @throws IOException if an I/O error occurs while attempting to receive the message
+	 * @throws IOException if an I/O error occurs while attempting to receive the
+	 *                     message
 	 */
 	@Override
 	public String receiveMessage() throws IOException {
@@ -82,6 +90,9 @@ public class CommunicationBrokerI implements CommunicationBroker {
 			// Recibir y procesar el audio
 			receiveAudio();
 			return "Audio ";
+		} else if ("CALL".equals(header)) {
+			// Recibir y procesar la llamada
+			return "Call ";
 		} else {
 			// Manejar casos donde el tipo de mensaje no es reconocido
 			return "Tipo de mensaje no reconocido.";
@@ -113,13 +124,20 @@ public class CommunicationBrokerI implements CommunicationBroker {
 			listGroups(instruction);
 		} else if (instruction.startsWith("/groupMsg")) {
 			sendGroupMessage(instruction);
+		} else if (instruction.startsWith("/call")) {
+			sendCallRequest(instruction + "<<<<<" + sourceUser);
+		} else if (instruction.startsWith("/acceptCall")) {
+			sendCallRequest(instruction + "<<<<<" + sourceUser);
+		} else if (instruction.startsWith("/rejectCall")) {
+			sendCallRequest(instruction + "<<<<<" + sourceUser);
 		}
 	}
 
 	/**
 	 * Sends a message to another client.
 	 * <p>
-	 * This method takes the instruction with the message as a string and sends it to another client.
+	 * This method takes the instruction with the message as a string and sends it
+	 * to another client.
 	 * <p>
 	 *
 	 * @param instruction the message to send to another client
@@ -153,7 +171,8 @@ public class CommunicationBrokerI implements CommunicationBroker {
 			AudioReceiver audioReceiver = new AudioReceiver();
 			File audioFile = audioReceiver.receiveAudio(audioFileName, RECEIVED_AUDIO_PATH, clientSocket);
 			if (audioFile != null) {
-				System.out.println("Audio recibido de '" + sourceUser + "'. Para reproducirlo, escriba el comando: '/play " + audioFileName + "'");
+				System.out.println("Audio recibido de '" + sourceUser
+						+ "'. Para reproducirlo, escriba el comando: '/play " + audioFileName + "'");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -193,7 +212,8 @@ public class CommunicationBrokerI implements CommunicationBroker {
 	/**
 	 * Shows the history of messages sent in the chat.
 	 * <p>
-	 * This method takes a string instruction and sends it to the server for get the messages history.
+	 * This method takes a string instruction and sends it to the server for get the
+	 * messages history.
 	 * <p>
 	 *
 	 * @param historialRequest the instruction "/getHistory"
@@ -203,4 +223,14 @@ public class CommunicationBrokerI implements CommunicationBroker {
 		writer.println("TEXT"); // Enviar encabezado indicando que es un mensaje de texto
 		writer.println(historialRequest); // Enviar el historial
 	}
+
+	public void sendCallRequest(String instruction) {
+		writer.println("CALL");
+		writer.println(instruction);
+	}
+
+	public void startCall(String sourceUser) {
+
+	}
+
 }
