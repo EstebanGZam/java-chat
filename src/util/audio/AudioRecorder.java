@@ -1,4 +1,4 @@
-package model.audio;
+package util.audio;
 
 import javax.sound.sampled.*;
 import java.io.*;
@@ -37,7 +37,7 @@ public class AudioRecorder {
 
 	public void startRecording(String targetUser, String audioName) {
 		this.currentTarget = targetUser;
-		this.receivedAudioName = audioName;
+		this.receivedAudioName = audioName + ".wav";
 		new Thread(() -> {
 			try {
 				DataLine.Info infoMicrophone = new DataLine.Info(TargetDataLine.class, format);
@@ -50,7 +50,7 @@ public class AudioRecorder {
 				System.out.println(e.getMessage());
 			}
 
-			audioFile = new File(RECORDED_AUDIO_PATH + audioName + ".wav");
+			audioFile = new File(RECORDED_AUDIO_PATH + this.receivedAudioName);
 			try (AudioInputStream audioStream = new AudioInputStream(microphone)) {
 				AudioSystem.write(audioStream, AudioFileFormat.Type.WAVE, audioFile);
 			} catch (IOException e) {

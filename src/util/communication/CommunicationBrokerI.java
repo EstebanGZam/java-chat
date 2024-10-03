@@ -1,7 +1,7 @@
-package communication;
+package util.communication;
 
-import model.audio.AudioReceiver;
-import model.audio.AudioSender;
+import util.audio.AudioReceiver;
+import util.audio.AudioSender;
 import model.calls.Call;
 import model.calls.CallMember;
 
@@ -148,6 +148,14 @@ public class CommunicationBrokerI implements CommunicationBroker {
 		writer.println(instruction); // Enviar el mensaje de texto
 	}
 
+	/**
+	 * Sends an audio file to another user.
+	 *
+	 * @param sourceUser Username of the user sending the audio.
+	 * @param targetUser Username of the user receiving the audio.
+	 * @param audioFile  File containing the audio to send.
+	 * @throws IOException If there's an issue with network communication.
+	 */
 	@Override
 	public void sendAudio(String sourceUser, String targetUser, File audioFile) throws IOException {
 		writer.println("AUDIO"); // Enviar encabezado indicando que es audio
@@ -159,7 +167,7 @@ public class CommunicationBrokerI implements CommunicationBroker {
 		writer.println(audioFileName); // Enviar el nombre del archivo de audio
 
 		AudioSender audioSender = new AudioSender();
-		audioSender.sendAudio(clientSocket, audioFile);
+		audioSender.sendAudio(writer, audioFile);
 	}
 
 	// Method to receive an audio file
@@ -169,7 +177,7 @@ public class CommunicationBrokerI implements CommunicationBroker {
 			String audioFileName = socketReader.readLine();
 			// Para leer audio o datos binarios
 			AudioReceiver audioReceiver = new AudioReceiver();
-			File audioFile = audioReceiver.receiveAudio(audioFileName, RECEIVED_AUDIO_PATH, clientSocket);
+			File audioFile = audioReceiver.receiveAudio(audioFileName, RECEIVED_AUDIO_PATH, socketReader);
 			if (audioFile != null) {
 				System.out.println("Audio recibido de '" + sourceUser
 						+ "'. Para reproducirlo, escriba el comando: '/play " + audioFileName + "'");
@@ -179,29 +187,66 @@ public class CommunicationBrokerI implements CommunicationBroker {
 		}
 	}
 
+	/**
+	 * Creates a new group.
+	 *
+	 * @param instruction The command received that contains the group name.
+	 */
+	@Override
 	public void createGroup(String instruction) {
 		writer.println("TEXT");
 		writer.println(instruction);
 	}
 
+	/**
+	 * Lists all existing groups and their members.
+	 * <p>
+	 * This method takes the instruction "/listGroups" and sends it to the server.
+	 * <p>
+	 *
+	 * @param instruction the instruction "/listGroups"
+	 */
 	@Override
 	public void listGroups(String instruction) {
 		writer.println("TEXT");
 		writer.println(instruction);
 	}
 
+	/**
+	 * Joins a client to an existing group.
+	 * <p>
+	 * This method takes the instruction "/joinGroup <group_name>" and sends it to
+	 * the server.
+	 * <p>
+	 *
+	 * @param instruction the instruction "/joinGroup <group_name>"
+	 */
 	@Override
 	public void joinGroup(String instruction) {
 		writer.println("TEXT");
 		writer.println(instruction);
 	}
 
+	/**
+	 * Sends a message to the server to be broadcast to all users in a group.
+	 * <p>
+	 * This method takes the instruction "/sendGroup <group_name> <message>" and
+	 * sends it to the server.
+	 * <p>
+	 *
+	 * @param instruction the instruction "/sendGroup <group_name> <message>"
+	 */
 	@Override
 	public void sendGroupMessage(String instruction) {
 		writer.println("TEXT");
 		writer.println(instruction);
 	}
 
+	/**
+	 * Closes the connection with the server.
+	 *
+	 * @throws IOException If there's an issue with network communication.
+	 */
 	@Override
 	public void closeConnection() throws IOException {
 		writer.close();

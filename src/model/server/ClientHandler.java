@@ -1,12 +1,11 @@
 package model.server;
 
-import model.audio.AudioReceiver;
-import model.audio.AudioSender;
+import util.audio.AudioReceiver;
+import util.audio.AudioSender;
 import model.manager.ChatManager;
 import model.messages.Message;
 
 import java.io.*;
-import java.net.Socket;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,20 +32,23 @@ public class ClientHandler implements Runnable {
 	 */
 	private final BufferedReader reader;
 
-	private final Socket clientSocket;
-
-	public ClientHandler(String username, Socket clientSocket, BufferedReader reader, PrintWriter writer) {
+	public ClientHandler(String username, BufferedReader reader, PrintWriter writer) {
 		this.username = username;
-		this.clientSocket = clientSocket;
 		this.reader = reader;
 		this.writer = writer;
 	}
 
+	/**
+	 * Starts the client handler loop that receives messages from the client.
+	 */
 	@Override
 	public void run() {
 		receiveMessage();
 	}
 
+	/**
+	 * Receives messages from the client and processes them.
+	 */
 	public void receiveMessage() {
 		String header;
 		boolean receiving = true;
@@ -77,18 +79,25 @@ public class ClientHandler implements Runnable {
 		}
 	}
 
+	/**
+	 * Sends an audio file to another user.
+	 *
+	 * @param sourceUser username of the user sending the audio
+	 * @param targetUser username of the user receiving the audio
+	 * @param audioFile  file containing the audio to send
+	 */
 	private void sendAudio(String sourceUser, String targetUser, File audioFile) {
 		try {
 			ClientHandler targetClient = chatManager.getClient(targetUser);
-			Socket targetSocket = targetClient.getClientSocket();
+			PrintWriter targetWriter = targetClient.getWriter();
 
-			targetClient.getWriter().println("AUDIO");
-			targetClient.getWriter().println(sourceUser);
-			targetClient.getWriter().println(audioFile.getName());
-			targetClient.getWriter().flush();
+			targetWriter.println("AUDIO");
+			targetWriter.println(sourceUser);
+			targetWriter.println(audioFile.getName());
+			targetWriter.flush();
 
 			AudioSender audioSender = new AudioSender();
-			audioSender.sendAudio(targetSocket, audioFile);
+			audioSender.sendAudio(targetWriter, audioFile);
 		} catch (IOException e) {
 			System.out.println("Error al reenviar el archivo de audio: " + e.getMessage());
 		}
@@ -98,7 +107,7 @@ public class ClientHandler implements Runnable {
 		File audioFile = null;
 		try {
 			AudioReceiver audioReceiver = new AudioReceiver();
-			audioFile = audioReceiver.receiveAudio(audioName, ChatManager.AUDIOS_FOLDER, this.clientSocket);
+			audioFile = audioReceiver.receiveAudio(audioName, ChatManager.AUDIOS_FOLDER, this.reader);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -159,6 +168,10 @@ public class ClientHandler implements Runnable {
 	private void sendGroupMessage(String groupName, String message) {
 		if (chatManager.isUserInGroup(username, groupName)) {
 			chatManager.sendGroupMessage(groupName, username, message);
+
+
+			chatManager.saveMessage(username, groupName, message);
+
 		} else {
 			sendTextResponse("No eres miembro del grupo '" + groupName + "'. Únete al grupo antes de enviar mensajes.");
 		}
@@ -177,9 +190,12 @@ public class ClientHandler implements Runnable {
 			ClientHandler receiverClientHandler = chatManager.getClient(receiver);
 			receiverClientHandler.sendTextResponse(sender + " >>>  " + message);
 			sendTextResponse("Mensaje enviado a '" + receiver + "'.");
+
+			// Guardar el mensaje en el historial (archivo txt)
 			chatManager.saveMessage(sender, receiver, message);
 		}
 	}
+
 
 	/**
 	 * Shows the message history to the client.
@@ -292,10 +308,6 @@ public class ClientHandler implements Runnable {
 			writer.println("TEXT");
 			writer.println(line);
 		}
-	}
-
-	public Socket getClientSocket() {
-		return clientSocket;
 	}
 
 	public PrintWriter getWriter() {

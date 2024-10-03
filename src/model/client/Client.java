@@ -1,13 +1,14 @@
 package model.client;
 
-import communication.CommunicationBrokerI;
-import communication.CommunicationBroker;
-import model.audio.AudioPlayer;
-import model.audio.AudioRecorder;
+import util.communication.CommunicationBrokerI;
+import util.communication.CommunicationBroker;
+import util.audio.AudioPlayer;
+import util.audio.AudioRecorder;
+import model.persistence.MessagePersistence;
+import model.server.Server;
 import model.calls.Call;
 import model.calls.CallMember;
 import model.server.ClientHandler;
-import model.server.Server;
 
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
@@ -37,6 +38,8 @@ public class Client {
 		client.connectToServer();
 		if (client.isConnected()) {
 			client.createUsername();
+			System.out.println("\nCargando los últimos mensajes del historial...");
+			MessagePersistence.printLastMessages();
 			client.receiveMessages();
 			client.displayInstructions();
 			client.awaitAndProcessCommands();
@@ -91,6 +94,8 @@ public class Client {
 		System.out.println("Para reproducir un mensaje de audio, escribe: /play <nombre_audio>");
 		System.out.println("Para salir ver el historial de mensajes, escribe: /msgHistory");
 		System.out.println("Para realizar una llamada a otro cliente, escribe: /call <usuario_destino>");
+		// System.out.println("Para salir ver el historial de mensajes, escribe:
+		// /msgHistory");
 		System.out.println("Para salir del chat, escribe: exit");
 		System.out.println(
 				"----------------------------------------------------------------------------------------------");
@@ -228,7 +233,7 @@ public class Client {
 	 * @param instruction the instruction or message to be processed
 	 */
 	public void processInstruction(String instruction) {
-		String audioName = "";
+		String audioName;
 		instruction = instruction.trim();
 		if (instruction.startsWith("/record")) {
 			String targetUser = instruction.split(" ")[1];
