@@ -6,6 +6,8 @@ import model.messages.Message;
 import model.persistence.MessagePersistence;
 import model.server.ClientHandler;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
 
@@ -177,5 +179,17 @@ public class ChatManager {
 				newMessage);
 	}
 
+	public void sendGroupAudio(String groupName, String sender, File audioFile) {
+		if (groups.containsKey(groupName)) {
+			Group group = groups.get(groupName);
+			for (String member : group.getMembers()) {
+				if (clients.containsKey(member) && !member.equals(sender)) {
+                    ClientHandler memberHandler = clients.get(member);
+                    memberHandler.sendAudio(sender, member, audioFile);
+                }
+			}
+			saveAudio(sender, groupName, new Audio(audioFile));
+		}
+	}
 
 }

@@ -71,6 +71,14 @@ public class ClientHandler implements Runnable {
 					String audioName = reader.readLine();
 					File audio = receiveAudio(audioName);
 					sendAudio(sourceUser, targetUser, audio);
+				} else if (header.equals("GROUP_AUDIO")) {
+					String clientsInCommunication = reader.readLine();
+					String[] communicationParts = clientsInCommunication.split(":::");
+					String sourceUser = communicationParts[0];
+					String groupName = communicationParts[1];
+					String audioName = reader.readLine();
+					File audio = receiveAudio(audioName);
+					chatManager.sendGroupAudio(groupName, sourceUser, audio);
 				}
 			} catch (IOException e) {
 				System.out.println("'" + this.username + "' se ha desconectado del chat.");
@@ -87,7 +95,7 @@ public class ClientHandler implements Runnable {
 	 * @param targetUser username of the user receiving the audio
 	 * @param audioFile  file containing the audio to send
 	 */
-	private void sendAudio(String sourceUser, String targetUser, File audioFile) {
+    public void sendAudio(String sourceUser, String targetUser, File audioFile) {
 		try {
 			ClientHandler targetClient = chatManager.getClient(targetUser);
 			PrintWriter targetWriter = targetClient.getWriter();

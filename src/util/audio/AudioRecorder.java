@@ -20,6 +20,8 @@ public class AudioRecorder {
 
 	private String currentTarget;
 	private String receivedAudioName;
+	private String currentGroup;
+	private boolean isGroupRecording;
 
 	public AudioRecorder() {
 		this.format = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE_IN_BITS, CHANNELS, SIGNED, BIG_ENDIAN);
@@ -58,6 +60,40 @@ public class AudioRecorder {
 				System.out.println(e.getMessage());
 			}
 		}).start();
+	}
+
+	public void startGroupRecording(String groupName, String audioName) {
+		this.currentGroup = groupName;
+		this.isGroupRecording = true;
+		this.receivedAudioName = audioName + ".wav";
+		new Thread(() -> {
+			try {
+				DataLine.Info infoMicrophone = new DataLine.Info(TargetDataLine.class, format);
+				microphone = (TargetDataLine) AudioSystem.getLine(infoMicrophone);
+				microphone.open(format);
+				microphone.start();
+				isRecording = true;
+			} catch (LineUnavailableException e) {
+				System.out.println("Error al iniciar la grabación de audio.");
+				System.out.println(e.getMessage());
+			}
+
+			audioFile = new File(RECORDED_AUDIO_PATH + this.receivedAudioName);
+			try (AudioInputStream audioStream = new AudioInputStream(microphone)) {
+				AudioSystem.write(audioStream, AudioFileFormat.Type.WAVE, audioFile);
+			} catch (IOException e) {
+				System.out.println("Error al guardar el archivo de audio.");
+				System.out.println(e.getMessage());
+			}
+		}).start();
+	}
+
+	public boolean isGroupRecording() {
+		return isGroupRecording;
+	}
+
+	public String getCurrentGroup() {
+		return currentGroup;
 	}
 
 	public void stopRecording() {

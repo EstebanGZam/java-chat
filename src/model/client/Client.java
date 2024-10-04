@@ -86,6 +86,7 @@ public class Client {
 //		System.out.println("Para enviar un mensaje de audio, escribe: /send-audio <nombre_audio> <usuario_destino>");
 		System.out.println("Para reproducir un mensaje de audio, escribe: /play <nombre_audio>");
 //		System.out.println("Para salir ver el historial de mensajes, escribe: /msgHistory");
+		System.out.println("Para grabar un mensaje de audio para un grupo, escribe: /record-group <nombre_del_grupo>");
 		System.out.println("Para salir del chat, escribe: exit");
 		System.out.println(
 				"----------------------------------------------------------------------------------------------");
@@ -215,18 +216,31 @@ public class Client {
 		String audioName;
 		instruction = instruction.trim();
 		if (instruction.startsWith("/record")) {
-			String targetUser = instruction.split(" ")[1];
-			SecureRandom secureRandom = new SecureRandom();
-			audioName = "aud-from-" + this.username + "-" + (10000 + secureRandom.nextInt(90000));
-			startAudioRecording(targetUser, audioName);
+			if (instruction.startsWith("/record-group")) {
+				String groupName = instruction.split(" ")[1];
+				SecureRandom secureRandom = new SecureRandom();
+				audioName = "group-aud-from-" + this.username + "-" + (10000 + secureRandom.nextInt(90000));
+				startGroupAudioRecording(groupName, audioName);
+			} else {
+				String targetUser = instruction.split(" ")[1];
+				SecureRandom secureRandom = new SecureRandom();
+				audioName = "aud-from-" + this.username + "-" + (10000 + secureRandom.nextInt(90000));
+				startAudioRecording(targetUser, audioName);
+			}
 		} else if (instruction.startsWith("/stop-audio")) {
 			if (!audioRecorder.isRecording()) {
-				System.out.println("No hay audio en reproducción.");
+				System.out.println("No hay audio en grabación.");
 			} else {
 				stopAudioRecording();
-				String targetUser = audioRecorder.getCurrentTarget();
-				audioName = audioRecorder.getReceivedAudioName();
-				sendAudio(targetUser, audioName);
+				if (audioRecorder.isGroupRecording()) {
+					String groupName = audioRecorder.getCurrentGroup();
+					audioName = audioRecorder.getReceivedAudioName();
+					sendGroupAudio(groupName, audioName);
+				} else {
+					String targetUser = audioRecorder.getCurrentTarget();
+					audioName = audioRecorder.getReceivedAudioName();
+					sendAudio(targetUser, audioName);
+				}
 			}
 		} else if (instruction.startsWith("/play")) {
 			if (instruction.split(" ").length < 2) {
@@ -319,5 +333,29 @@ public class Client {
 		}
 	}
 
-}
+	private void startGroupAudioRecording(String groupName, String audioName) {
+		if (audioName == null || audioName.isEmpty()) {
+			System.out.println("Por favor, ingrese un nombre para el archivo de audio.");
+			return;
+		}
 
+		if (audioRecorder.isRecording()) {
+			System.out.println("Ya se está grabando un audio.");
+			return;
+		}
+
+		audioRecorder.startGroupRecording(groupName, audioName);
+		System.out.println("Grabando audio para el grupo " + groupName + "...");
+	}
+
+	private void sendGroupAudio(String groupName, String audioName) {
+		if (audioPlayer.audioExists(audioName)) {
+			File audioFile = audioPlayer.searchAudio(audioName);
+			try {
+				communicationBroker.sendGroupAudio(this.username, groupName, audioFile);
+			} catch (IOException e) {
+				System.out.println("Error al enviar el audio al grupo.");
+			}
+		}
+	}
+}

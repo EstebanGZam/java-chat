@@ -96,5 +96,7 @@ public interface CommunicationBroker {
 	 * @throws IOException If there's an issue with network communication.
 	 */
 	void closeConnection() throws IOException;
+
+	void sendGroupAudio(String sourceUser, String groupName, File audioFile) throws IOException;
 }
 

@@ -246,4 +246,14 @@ public class CommunicationBrokerI implements CommunicationBroker {
 		writer.println("TEXT"); // Enviar encabezado indicando que es un mensaje de texto
 		writer.println(historialRequest); // Enviar el historial
 	}
+
+	public void sendGroupAudio(String sourceUser, String groupName, File audioFile) throws IOException {
+		writer.println("GROUP_AUDIO"); // Nuevo tipo de mensaje
+		writer.println(sourceUser + ":::" + groupName); // Formato: emisor:::grupo
+		String audioFileName = audioFile.getName();
+		writer.println(audioFileName);
+
+		AudioSender audioSender = new AudioSender();
+		audioSender.sendAudio(writer, audioFile);
+	}
 }
