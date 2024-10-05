@@ -5,8 +5,10 @@ import model.audio.Audio;
 import model.messages.Message;
 import model.persistence.MessagePersistence;
 import model.server.ClientHandler;
+import model.calls.Call;
 
 import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.*;
 
 public class ChatManager {
@@ -15,6 +17,7 @@ public class ChatManager {
 	private final Map<String, ClientHandler> clients = new HashMap<>();
 	private final Map<BigInteger, Message> messageHistory = new HashMap<>();
 	private final Map<String, Group> groups = new HashMap<>();
+	private final Map<String, Call> calls = new HashMap<>();
 	public static final String AUDIOS_FOLDER = "./resources/server/audio/";
 
 	/**
@@ -25,19 +28,22 @@ public class ChatManager {
 	 * @return the single instance of the {@link ChatManager}
 	 */
 	public static ChatManager getInstance() {
-		if (instance == null) instance = new ChatManager();
+		if (instance == null)
+			instance = new ChatManager();
 		return instance;
 	}
 
 	/**
 	 * Registers a client with its unique ID and handler.
 	 * <p>
-	 * This method associates a client with its unique ID and a handler that will be used to communicate with it.
+	 * This method associates a client with its unique ID and a handler that will be
+	 * used to communicate with it.
 	 * <p>
 	 * This method does not throw any checked exceptions.
 	 *
 	 * @param username      the unique ID of the client to register
-	 * @param clientHandler the handler that will be used to communicate with the client
+	 * @param clientHandler the handler that will be used to communicate with the
+	 *                      client
 	 */
 	public void registerClient(String username, ClientHandler clientHandler) {
 		clients.put(username, clientHandler);
@@ -68,7 +74,8 @@ public class ChatManager {
 	/**
 	 * Saves a message in the chat history.
 	 * <p>
-	 * The message is associated with a unique identifier that is incremented for each message.
+	 * The message is associated with a unique identifier that is incremented for
+	 * each message.
 	 *
 	 * @param sender   the username of the user who sent the message
 	 * @param receiver the username of the user who received the message
@@ -79,16 +86,15 @@ public class ChatManager {
 		messageHistory.put(
 				messagesID = messagesID.add(BigInteger.ONE), // Increment the ID before saving
 				newMessage);
-	
-	    
-		MessagePersistence.saveMessage(sender, receiver, message);  
+
+		MessagePersistence.saveMessage(sender, receiver, message);
 	}
-	
 
 	/**
 	 * Unregisters a client with the given username.
 	 * <p>
-	 * After this method is called, the client with the given username will be removed from the chat manager.
+	 * After this method is called, the client with the given username will be
+	 * removed from the chat manager.
 	 *
 	 * @param username the username of the client to unregister
 	 */
@@ -106,7 +112,8 @@ public class ChatManager {
 	 * Returns a list of the messages in the order they were saved.
 	 * <p>
 	 * This method returns a copy of the messages stored in the chat manager.
-	 * The messages are ordered by the time they were saved, with the most recent messages last.
+	 * The messages are ordered by the time they were saved, with the most recent
+	 * messages last.
 	 *
 	 * @return a list of the messages in the order they were saved
 	 */
@@ -133,6 +140,10 @@ public class ChatManager {
 		return groupsInfo;
 	}
 
+	public Group getGroup(String groupName) {
+		return groups.get(groupName);
+	}
+
 	public boolean joinGroup(String groupName, String username) {
 		if (groupExists(groupName)) {
 			Group group = groups.get(groupName);
@@ -144,7 +155,8 @@ public class ChatManager {
 
 	/**
 	 * Sends a message to all members of a specified group.
-	 * If the group exists, the message is broadcasted to each member that is currently connected.
+	 * If the group exists, the message is broadcasted to each member that is
+	 * currently connected.
 	 *
 	 * @param groupName The name of the group to which the message will be sent.
 	 * @param sender    The username of the client sending the message.
@@ -177,5 +189,18 @@ public class ChatManager {
 				newMessage);
 	}
 
+	public String addCall(Call call) {
+		SecureRandom secureRandom = new SecureRandom();
+		String callID = "call-" + (10000 + secureRandom.nextInt(90000));
+		calls.put(callID, call);
+		return callID;
+	}
 
+	public boolean callExists(String callID) {
+		return calls.containsKey(callID);
+	}
+
+	public Call getCall(String callID) {
+		return calls.get(callID);
+	}
 }

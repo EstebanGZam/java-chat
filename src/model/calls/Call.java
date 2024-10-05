@@ -1,14 +1,20 @@
 package model.calls;
 
-import java.io.IOException;
 import java.util.HashMap;
 
-public class Call implements Runnable {
+import model.server.ClientHandler;
 
+public class Call {
+
+    private enum Status {
+        ON_HOLD, ACTIVE;
+    }
+
+    private Status status = Status.ON_HOLD;
     private HashMap<String, CallMember> callMembers;
     public boolean isRunning = true;
 
-    public Call() {
+    public Call(ClientHandler callHost) {
         callMembers = new HashMap<>();
     }
 
@@ -28,28 +34,12 @@ public class Call implements Runnable {
         return callMembers.containsKey(username);
     }
 
-    @Override
-    public void run() {
-        for (CallMember callMember : callMembers.values()) {
-            Thread microphoneThread = new Thread(() -> {
-                try {
-                    callMember.talk(callMember.getSocket());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
+    public Status getStatus() {
+        return status;
+    }
 
-            Thread speakerThread = new Thread(() -> {
-                try {
-                    callMember.listen(callMember.getSocket());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-
-            microphoneThread.start();
-            speakerThread.start();
-        }
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
 }

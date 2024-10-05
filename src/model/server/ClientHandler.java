@@ -2,6 +2,9 @@ package model.server;
 
 import util.audio.AudioReceiver;
 import util.audio.AudioSender;
+import model.calls.Call;
+import model.calls.CallMember;
+import model.group.Group;
 import model.manager.ChatManager;
 import model.messages.Message;
 
@@ -9,8 +12,19 @@ import java.io.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.net.DatagramSocket;
+import java.net.SocketException;
 
 public class ClientHandler implements Runnable {
+
+	private enum Status {
+		AVAILABLE,
+		WAITING_FOR_ANSWER,
+		CALLED_NO_ANSWER,
+		ON_CALL
+	}
+
+	private Status status = Status.AVAILABLE;
 
 	/**
 	 * Singleton instance of ChatManager that handles the core chat logic.
@@ -70,6 +84,8 @@ public class ClientHandler implements Runnable {
 					String audioName = reader.readLine();
 					File audio = receiveAudio(audioName);
 					sendAudio(sourceUser, targetUser, audio);
+				} else if (header.equals("CALL")) {
+
 				}
 			} catch (IOException e) {
 				System.out.println("'" + this.username + "' se ha desconectado del chat.");
@@ -144,17 +160,19 @@ public class ClientHandler implements Runnable {
 			String[] parts = message.split("<<<<<");
 			String instruction = parts[0];
 			String sender = parts[1];
-			sendCallRequest(sender, instruction);
+			sendGroupCallRequest(sender, instruction);
 		} else if (message.startsWith("/acceptCall")) {
 			// Accept or reject a call request
 			String[] parts = message.split("<<<<<");
-			String sourceUser = parts[1];
-			handleCallResponse(sourceUser, true);
+			String instruction = parts[0];
+			String sender = parts[1];
+			handleCallResponse(sender, instruction, true);
 		} else if (message.startsWith("/rejectCall")) {
 			// Accept or reject a call request
 			String[] parts = message.split("<<<<<");
-			String sourceUser = parts[1];
-			handleCallResponse(sourceUser, false);
+			String instruction = parts[0];
+			String sender = parts[1];
+			handleCallResponse(sender, instruction, false);
 		}
 	}
 
@@ -168,7 +186,6 @@ public class ClientHandler implements Runnable {
 	private void sendGroupMessage(String groupName, String message) {
 		if (chatManager.isUserInGroup(username, groupName)) {
 			chatManager.sendGroupMessage(groupName, username, message);
-
 
 			chatManager.saveMessage(username, groupName, message);
 
@@ -195,7 +212,6 @@ public class ClientHandler implements Runnable {
 			chatManager.saveMessage(sender, receiver, message);
 		}
 	}
-
 
 	/**
 	 * Shows the message history to the client.
@@ -271,31 +287,74 @@ public class ClientHandler implements Runnable {
 		}
 	}
 
-	private void sendCallRequest(String sender, String instruction) {
+	private void sendGroupCallRequest(String sender, String instruction) {
 		String[] parts = instruction.split(" ");
-		String receiver = parts[1];
-		if (!chatManager.clientExists(receiver)) {
-			sendTextResponse("El usuario '" + receiver + "' no existe.");
-		} else if (receiver.equals(sender)) {
-			sendTextResponse("No puedes llamarte a ti mismo.");
+		String groupName = parts[1];
+		if (!chatManager.groupExists(groupName)) {
+			sendTextResponse("El usuario '" + groupName + "' no existe.");
 		} else {
-			ClientHandler receiverClientHandler = chatManager.getClient(receiver);
-			receiverClientHandler.sendTextResponse(sender + " te está llamando...");
-			sendTextResponse("Llamada enviada a '" + receiver + "'. Esperando respuesta...");
+			Call call = new Call(this);
+			String callID = chatManager.addCall(call);
+			registerInCall(callID);
+			Group receiverGroup = chatManager.getGroup(groupName);
+			notifyCallToGroup(receiverGroup, sender, callID);
+			sendTextResponse("Llamada enviada a '" + receiverGroup + "'. Esperando respuesta...");
+			status = Status.WAITING_FOR_ANSWER;
 		}
 	}
 
-	public void handleCallResponse(String sourceUser, boolean accepted) {
+	private void notifyCallToGroup(Group group, String sender, String callID) {
+		for (String member : group.getMembers()) {
+			if (!member.equals(username)) {
+				ClientHandler memberClient = chatManager.getClient(member);
+				if (memberClient.status == Status.AVAILABLE) {
+					memberClient.notifyCall(sender, callID);
+					memberClient.status = Status.CALLED_NO_ANSWER;
+				} else {
+					memberClient.sendTextResponse("Llamada perdida de " + sender + "al grupo " + group.getName());
+				}
+			}
+		}
+	}
+
+	private void notifyCall(String sender, String callID) {
+		sendTextResponse(
+				sender + " te está llamando. ¿Deseas aceptar la llamada? (/acceptCall " + callID + " o /rejectCall "
+						+ callID + ")");
+	}
+
+	public void handleCallResponse(String sourceUser, String instruction, boolean accepted) {
 		ClientHandler sourceClient = chatManager.getClient(sourceUser);
-
-		if (accepted) {
-			sendTextResponse("Llamada aceptada. Iniciando...");
-			sourceClient.sendTextResponse(username + " ha aceptado la llamada.");
-
+		String callID = instruction.split(" ")[1];
+		if (chatManager.callExists(callID)) {
+			if (accepted) {
+				registerInCall(callID);
+				sendTextResponse("Llamada aceptada. Iniciando...");
+				sourceClient.sendTextResponse(username + " ha aceptado la llamada.");
+			} else {
+				sendTextResponse("Has rechazado la llamada.");
+				sourceClient.sendTextResponse(username + " ha rechazado la llamada.");
+			}
 		} else {
-			sendTextResponse("Has rechazado la llamada.");
+			sendTextResponse("La llamada ha expirado.");
 			sourceClient.sendTextResponse(username + " ha rechazado la llamada.");
 		}
+	}
+
+	private void registerInCall(String callID) {
+		try {
+			DatagramSocket socket = new DatagramSocket(0); // crea un socket temporal con un puerto disponible
+			Call call = chatManager.getCall(callID);
+			int port = socket.getLocalPort();
+			call.addCallMember(new CallMember(username, socket));
+			writer.println("CALL");
+			writer.println(port);
+			socket.close(); // cierra el socket temporal
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
 	/**

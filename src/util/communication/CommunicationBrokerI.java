@@ -2,9 +2,13 @@ package util.communication;
 
 import util.audio.AudioReceiver;
 import util.audio.AudioSender;
+import util.call.CallAudioReceiver;
+import util.call.CallAudioRecorder;
 
 import java.io.*;
 import java.net.Socket;
+
+import javax.sound.sampled.LineUnavailableException;
 
 import static model.client.Client.RECEIVED_AUDIO_PATH;
 
@@ -90,7 +94,8 @@ public class CommunicationBrokerI implements CommunicationBroker {
 			return "Audio ";
 		} else if ("CALL".equals(header)) {
 			// Recibir y procesar la llamada
-
+			int port = Integer.parseInt(socketReader.readLine());
+			hearInCall(port);
 			return "Call ";
 		} else {
 			// Manejar casos donde el tipo de mensaje no es reconocido
@@ -124,11 +129,9 @@ public class CommunicationBrokerI implements CommunicationBroker {
 		} else if (instruction.startsWith("/groupMsg")) {
 			sendGroupMessage(instruction);
 		} else if (instruction.startsWith("/call")) {
-			sendCallRequest(instruction + "<<<<<" + sourceUser);
+			startCallProcess(instruction);
 		} else if (instruction.startsWith("/acceptCall")) {
-			sendCallRequest(instruction + "<<<<<" + sourceUser);
-		} else if (instruction.startsWith("/rejectCall")) {
-			sendCallRequest(instruction + "<<<<<" + sourceUser);
+			acceptCall(instruction + "<<<<<" + sourceUser);
 		}
 	}
 
@@ -268,9 +271,34 @@ public class CommunicationBrokerI implements CommunicationBroker {
 		writer.println(historialRequest); // Enviar el historial
 	}
 
-	public void sendCallRequest(String instruction) {
-		writer.println("CALL");
+	public void startCallProcess(String instruction) {
+		writer.println("TEXT");
 		writer.println(instruction);
+	}
+
+	public void acceptCall(String instruction) {
+		writer.println("TEXT");
+		writer.println(instruction);
+	}
+
+	public void talkInCall() {
+		writer.println("CALL");
+		CallAudioRecorder recorder = new CallAudioRecorder();
+		recorder.startRecording();
+	}
+
+	public void hearInCall(int port) {
+		writer.println("CALL");
+		CallAudioReceiver receiver = new CallAudioReceiver(port);
+		try {
+			receiver.receiveAudio();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (LineUnavailableException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }
