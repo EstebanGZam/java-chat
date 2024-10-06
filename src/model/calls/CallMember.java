@@ -16,6 +16,7 @@ public class CallMember {
         this.username = username;
         this.socket = socket;
         this.port = socket.getLocalPort();
+        this.isHost = isHost;
         try {
             this.ip = InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {

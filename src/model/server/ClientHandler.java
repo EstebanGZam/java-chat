@@ -303,7 +303,7 @@ public class ClientHandler implements Runnable {
 		String[] parts = instruction.split(" ");
 		String groupName = parts[1];
 		if (!chatManager.groupExists(groupName)) {
-			sendTextResponse("El usuario '" + groupName + "' no existe.");
+			sendTextResponse("El grupo '" + groupName + "' no existe.");
 		} else {
 			Call call = new Call(this);
 			String callID = chatManager.addCall(call);
@@ -336,25 +336,23 @@ public class ClientHandler implements Runnable {
 	}
 
 	public void handleCallResponse(String sourceUser, String instruction, boolean accepted) {
-		ClientHandler sourceClient = chatManager.getClient(sourceUser);
 		String callID = instruction.split(" ")[1];
 		if (chatManager.callExists(callID)) {
+			Call call = chatManager.getCall(callID);
+			ClientHandler callHost = chatManager.getClient(call.getCallHost().getUsername());
 			if (accepted) {
-				Call call = chatManager.getCall(callID);
 				registerInCall(callID, false);
 				sendTextResponse(
 						"Llamada aceptada. Iniciando llamada... Si deseas finalizar la llamada, escribe /endCall "
 								+ callID);
-				chatManager.getClient(call.getCallHost().getUsername()).sendTextResponse(
+				callHost.sendTextResponse(
 						username + " ha aceptado la llamada. Iniciando llamada... Si deseas finalizar la llamada, escribe /endCall "
 								+ callID);
 			} else {
-				sendTextResponse("Has rechazado la llamada.");
-				sourceClient.sendTextResponse(username + " ha rechazado la llamada.");
+				sendTextResponse("Esta llamada ha sido rechazada.");
 			}
 		} else {
-			sendTextResponse("La llamada ha expirado.");
-			sourceClient.sendTextResponse(username + " ha rechazado la llamada.");
+			sendTextResponse("Esta llamada no existe.");
 		}
 	}
 
@@ -396,6 +394,7 @@ public class ClientHandler implements Runnable {
 		if (call.numberOfCallMembers() == 0) {
 			endCall(callID);
 		}
+		sendTextResponse("Llamada finalizada.");
 	}
 
 	private void endCall(String callID) {
