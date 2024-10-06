@@ -7,7 +7,7 @@ import java.net.DatagramPacket;
 
 public class CallAudioReceiver {
 
-    private boolean running = true;
+    private boolean running = false;
     private DatagramSocket socket;
 
     public CallAudioReceiver(int port) {
@@ -19,23 +19,42 @@ public class CallAudioReceiver {
         }
     }
 
-    public void receiveAudio() throws IOException, LineUnavailableException {
-        AudioFormat format = new AudioFormat(44100, 16, 1, true, true);
-        DataLine.Info infoSpeaker = new DataLine.Info(SourceDataLine.class, format);
-        SourceDataLine speaker = (SourceDataLine) AudioSystem.getLine(infoSpeaker);
+    public void startReceiving() {
+        running = true;
+        new Thread(this::receiveAudio).start();
+    }
 
-        speaker.open(format);
-        speaker.start();
-
-        byte[] buffer = new byte[10240];
-        DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-
-        while (running) {
-            socket.receive(packet);
-            speaker.write(packet.getData(), 0, packet.getLength());
+    public void stopReceiving() {
+        running = false;
+        if (socket != null && !socket.isClosed()) {
+            socket.close();
         }
+    }
 
-        speaker.drain();
-        speaker.close();
+    public void receiveAudio() {
+        try {
+            AudioFormat format = new AudioFormat(44100, 16, 1, true, true);
+            DataLine.Info infoSpeaker = new DataLine.Info(SourceDataLine.class, format);
+            SourceDataLine speaker = (SourceDataLine) AudioSystem.getLine(infoSpeaker);
+            speaker.open(format);
+            speaker.start();
+
+            byte[] buffer = new byte[10240];
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+
+            while (running) {
+                socket.receive(packet);
+                speaker.write(packet.getData(), 0, packet.getLength());
+            }
+
+            speaker.drain();
+            speaker.close();
+        } catch (IOException | LineUnavailableException e) {
+            System.err.println("Error al recibir audio: " + e.getMessage());
+        } finally {
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
+        }
     }
 }

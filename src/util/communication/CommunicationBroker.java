@@ -13,7 +13,6 @@ public interface CommunicationBroker {
 	 */
 	String registerClient(String clientId) throws IOException;
 
-
 	/**
 	 * Receives messages from the server.
 	 *
@@ -21,7 +20,6 @@ public interface CommunicationBroker {
 	 * @throws IOException If there's an issue with network communication.
 	 */
 	String receiveMessage() throws IOException;
-
 
 	/**
 	 * Processes an instruction from a user.
@@ -31,14 +29,12 @@ public interface CommunicationBroker {
 	 */
 	void processInstruction(String sourceUser, String instruction);
 
-
 	/**
 	 * Sends a message to another client.
 	 *
 	 * @param instruction Message to send to another client.
 	 */
 	void sendMessageToAnotherClient(String instruction);
-
 
 	/**
 	 * Displays the message history.
@@ -48,14 +44,12 @@ public interface CommunicationBroker {
 	 */
 	void showHistory(String instruction) throws IOException;
 
-
 	/**
 	 * Creates a new group.
 	 *
 	 * @param instruction Group name or creation command.
 	 */
 	void createGroup(String instruction);
-
 
 	/**
 	 * Lists all available groups.
@@ -64,14 +58,12 @@ public interface CommunicationBroker {
 	 */
 	void listGroups(String instruction);
 
-
 	/**
 	 * Joins a client to an existing group.
 	 *
 	 * @param instruction Group name or join command.
 	 */
 	void joinGroup(String instruction);
-
 
 	/**
 	 * Sends a message to all members of a group.
@@ -96,5 +88,11 @@ public interface CommunicationBroker {
 	 * @throws IOException If there's an issue with network communication.
 	 */
 	void closeConnection() throws IOException;
-}
 
+	/**
+	 * Ends the current call session.
+	 *
+	 * @throws IOException If there's an issue with network communication.
+	 */
+	void endCall() throws IOException;
+}

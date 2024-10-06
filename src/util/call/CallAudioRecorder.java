@@ -1,47 +1,60 @@
 package util.call;
 
 import javax.sound.sampled.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 public class CallAudioRecorder {
-
+    // Atributos de la clase
     private TargetDataLine microphone;
-    private final AudioFormat format;
-    private Thread recordingThread;
+    private ByteArrayOutputStream audioOutputStream; // Se asegura que esté accesible en todos los métodos
+    private boolean isRecording;
 
-    public static final int SAMPLE_RATE = 44100;
-    public static final int SAMPLE_SIZE_IN_BITS = 16;
-    public static final int CHANNELS = 1;
-    public static final boolean SIGNED = true;
-    public static final boolean BIG_ENDIAN = true;
-
-    public CallAudioRecorder() {
-        this.format = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE_IN_BITS, CHANNELS, SIGNED, BIG_ENDIAN);
-    }
-
+    // Método para iniciar la grabación
     public void startRecording() {
-        recordingThread = new Thread(() -> {
-            try {
-                DataLine.Info infoMicrophone = new DataLine.Info(TargetDataLine.class, format);
-                microphone = (TargetDataLine) AudioSystem.getLine(infoMicrophone);
-                microphone.open(format);
-                microphone.start();
-            } catch (LineUnavailableException e) {
-                System.out.println("Error al iniciar la grabación de audio.");
-                System.out.println(e.getMessage());
-            }
-        });
-        recordingThread.start();
-    }
+        try {
+            AudioFormat format = new AudioFormat(44100, 16, 1, true, true);
+            DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
+            microphone = (TargetDataLine) AudioSystem.getLine(info);
+            microphone.open(format);
+            microphone.start();
 
-    public void stopRecording() {
-        if (microphone != null) {
-            microphone.stop();
-            microphone.close();
+            audioOutputStream = new ByteArrayOutputStream(); // Inicializar el stream aquí
+            isRecording = true;
+
+            // Iniciar un hilo para capturar el audio
+            Thread captureThread = new Thread(() -> {
+                byte[] buffer = new byte[1024]; // Buffer de grabación
+                while (isRecording) {
+                    int bytesRead = microphone.read(buffer, 0, buffer.length);
+                    if (bytesRead > 0) {
+                        audioOutputStream.write(buffer, 0, bytesRead);
+                    }
+                }
+            });
+
+            captureThread.start();
+        } catch (LineUnavailableException e) {
+            System.err.println("Error al iniciar la grabación: " + e.getMessage());
         }
-        recordingThread.interrupt();
     }
 
-    public TargetDataLine getMicrophone() {
-        return microphone;
+    // Método para obtener los datos grabados
+    public byte[] getRecordedData() {
+        byte[] audioData = audioOutputStream.toByteArray(); // Obtener los datos del audio grabado
+        audioOutputStream.reset(); // Limpiar el stream después de leer
+        return audioData;
+    }
+
+    // Método para detener la grabación
+    public void stopRecording() {
+        isRecording = false;
+        microphone.stop();
+        microphone.close();
+        try {
+            audioOutputStream.close();
+        } catch (IOException e) {
+            System.err.println("Error al cerrar el stream de audio: " + e.getMessage());
+        }
     }
 }
