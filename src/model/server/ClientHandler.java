@@ -307,7 +307,7 @@ public class ClientHandler implements Runnable {
 		} else {
 			Call call = new Call(this);
 			String callID = chatManager.addCall(call);
-			registerInCall(callID);
+			registerInCall(callID, false);
 			Group receiverGroup = chatManager.getGroup(groupName);
 			notifyCallToGroup(receiverGroup, sender, callID);
 			sendTextResponse("Llamada enviada a '" + receiverGroup + "'. Esperando respuesta...");
@@ -340,11 +340,14 @@ public class ClientHandler implements Runnable {
 		String callID = instruction.split(" ")[1];
 		if (chatManager.callExists(callID)) {
 			if (accepted) {
-				registerInCall(callID);
+				Call call = chatManager.getCall(callID);
+				registerInCall(callID, false);
 				sendTextResponse(
 						"Llamada aceptada. Iniciando llamada... Si deseas finalizar la llamada, escribe /endCall "
 								+ callID);
-				sourceClient.sendTextResponse(username + " ha aceptado la llamada.");
+				chatManager.getClient(call.getCallHost().getUsername()).sendTextResponse(
+						username + " ha aceptado la llamada. Iniciando llamada... Si deseas finalizar la llamada, escribe /endCall "
+								+ callID);
 			} else {
 				sendTextResponse("Has rechazado la llamada.");
 				sourceClient.sendTextResponse(username + " ha rechazado la llamada.");
@@ -355,12 +358,12 @@ public class ClientHandler implements Runnable {
 		}
 	}
 
-	private void registerInCall(String callID) {
+	private void registerInCall(String callID, boolean isHost) {
 		try {
 			DatagramSocket socket = new DatagramSocket(0); // crea un socket temporal con un puerto disponible
 			Call call = chatManager.getCall(callID);
 			int port = socket.getLocalPort();
-			call.addCallMember(new CallMember(username, socket));
+			call.addCallMember(new CallMember(username, socket, isHost));
 			writer.println("CALL");
 			writer.println(port);
 			socket.close(); // cierra el socket temporal

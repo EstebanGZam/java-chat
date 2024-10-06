@@ -4,17 +4,15 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import util.call.CallSenderAudio;
-
 public class CallMember {
 
     private String username;
     private DatagramSocket socket;
     private int port;
     private String ip;
-    private CallSenderAudio callSenderAudio = new CallSenderAudio();
+    private boolean isHost;
 
-    public CallMember(String username, DatagramSocket socket) {
+    public CallMember(String username, DatagramSocket socket, boolean isHost) {
         this.username = username;
         this.socket = socket;
         this.port = socket.getLocalPort();
@@ -40,6 +38,10 @@ public class CallMember {
 
     public String getIp() {
         return ip;
+    }
+
+    public boolean isHost() {
+        return isHost;
     }
 
 }

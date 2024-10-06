@@ -78,7 +78,7 @@ public class CommunicationBrokerI implements CommunicationBroker {
 		} else if (instruction.startsWith("/groupMsg")) {
 			sendGroupMessage(instruction);
 		} else if (instruction.startsWith("/groupCall")) {
-			startCallProcess(instruction);
+			startCallProcess(instruction + "<<<<<" + sourceUser);
 		} else if (instruction.startsWith("/acceptCall")) {
 			acceptCall(instruction + "<<<<<" + sourceUser);
 			talkInCall(instruction, sourceUser);

@@ -49,4 +49,13 @@ public class Call {
         return callMembers.size();
     }
 
+    public CallMember getCallHost() {
+        for (CallMember callMember : callMembers.values()) {
+            if (callMember.isHost()) {
+                return callMember;
+            }
+        }
+        return null;
+    }
+
 }
