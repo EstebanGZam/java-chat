@@ -2,6 +2,7 @@ package model.server;
 
 import util.audio.AudioReceiver;
 import util.audio.AudioSender;
+import util.call.CallAudioReceiver;
 import util.call.CallSenderAudio;
 import model.calls.Call;
 import model.calls.CallMember;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.net.DatagramSocket;
+import java.net.Socket;
 import java.net.SocketException;
 
 public class ClientHandler implements Runnable {
@@ -48,10 +50,13 @@ public class ClientHandler implements Runnable {
 	 */
 	private final BufferedReader reader;
 
-	public ClientHandler(String username, BufferedReader reader, PrintWriter writer) {
+	private final Socket clientSocket;
+
+	public ClientHandler(String username, BufferedReader reader, PrintWriter writer, Socket clientSocket) {
 		this.username = username;
 		this.reader = reader;
 		this.writer = writer;
+		this.clientSocket = clientSocket;
 	}
 
 	/**
@@ -91,8 +96,8 @@ public class ClientHandler implements Runnable {
 					String[] callParts = callInfo.split(":::");
 					String sourceUser = callParts[0];
 					String callID = callParts[1];
-					int bytesRead = Integer.parseInt(reader.readLine());
-					sendCallAudio(sourceUser, callID, bytesRead);
+					sendCallAudio(sourceUser, callID,
+							CallAudioReceiver.receiveBytesRead(clientSocket.getInputStream()));
 				}
 			} catch (IOException e) {
 				System.out.println("'" + this.username + "' se ha desconectado del chat.");
@@ -304,15 +309,21 @@ public class ClientHandler implements Runnable {
 		String groupName = parts[1];
 		if (!chatManager.groupExists(groupName)) {
 			sendTextResponse("El grupo '" + groupName + "' no existe.");
-		} else {
-			Call call = new Call(this);
-			String callID = chatManager.addCall(call);
-			registerInCall(callID, true);
-			Group receiverGroup = chatManager.getGroup(groupName);
-			notifyCallToGroup(receiverGroup, sender, callID);
-			sendTextResponse("Llamada enviada a '" + receiverGroup.getName() + "'. Esperando respuesta...");
-			status = Status.WAITING_FOR_ANSWER;
+			return;
 		}
+
+		if (!chatManager.getGroup(groupName).isMember(sender)) {
+			sendTextResponse("No eres miembro del grupo '" + groupName + "'.");
+			return;
+		}
+
+		Call call = new Call(this);
+		String callID = chatManager.addCall(call);
+		registerInCall(callID, true);
+		Group receiverGroup = chatManager.getGroup(groupName);
+		notifyCallToGroup(receiverGroup, sender, callID);
+		sendTextResponse("Llamada enviada a '" + receiverGroup.getName() + "'. Esperando respuesta...");
+		status = Status.WAITING_FOR_ANSWER;
 	}
 
 	private void notifyCallToGroup(Group group, String sender, String callID) {
@@ -350,6 +361,7 @@ public class ClientHandler implements Runnable {
 								+ callID);
 			} else {
 				sendTextResponse("Esta llamada ha sido rechazada.");
+				callHost.sendTextResponse(username + " ha rechazado la llamada.");
 			}
 		} else {
 			sendTextResponse("Esta llamada no existe.");
@@ -388,6 +400,14 @@ public class ClientHandler implements Runnable {
 
 	private void exitFromCall(String sender, String instruction) {
 		String callID = instruction.split(" ")[1];
+		if (!chatManager.callExists(callID)) {
+			sendTextResponse("Esta llamada no existe.");
+			return;
+		}
+		if (status == Status.AVAILABLE) {
+			sendTextResponse("Llamada finalizada.");
+			return;
+		}
 		Call call = chatManager.getCall(callID);
 		call.removeCallMember(callID);
 		status = Status.AVAILABLE;
@@ -395,6 +415,7 @@ public class ClientHandler implements Runnable {
 			endCall(callID);
 		}
 		sendTextResponse("Llamada finalizada.");
+
 	}
 
 	private void endCall(String callID) {

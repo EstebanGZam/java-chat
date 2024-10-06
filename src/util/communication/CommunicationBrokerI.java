@@ -50,6 +50,7 @@ public class CommunicationBrokerI implements CommunicationBroker {
 				return "Audio received.";
 			case "CALL":
 				int port = Integer.parseInt(socketReader.readLine());
+
 				hearInCall(port);
 				return "Call established.";
 			default:
@@ -80,8 +81,10 @@ public class CommunicationBrokerI implements CommunicationBroker {
 		} else if (instruction.startsWith("/groupCall")) {
 			startCallProcess(instruction + "<<<<<" + sourceUser);
 		} else if (instruction.startsWith("/acceptCall")) {
-			acceptCall(instruction + "<<<<<" + sourceUser);
+			sendCallResponse(instruction + "<<<<<" + sourceUser);
 			talkInCall(instruction, sourceUser);
+		} else if (instruction.startsWith("/rejectCall")) {
+			sendCallResponse(instruction + "<<<<<" + sourceUser);
 		} else if (instruction.equals("/endCall")) {
 			endCall(instruction + "<<<<<" + sourceUser);
 		}
@@ -160,7 +163,7 @@ public class CommunicationBrokerI implements CommunicationBroker {
 		writer.println(instruction);
 	}
 
-	public void acceptCall(String instruction) {
+	public void sendCallResponse(String instruction) {
 		writer.println("TEXT");
 		writer.println(instruction);
 	}
@@ -173,7 +176,12 @@ public class CommunicationBrokerI implements CommunicationBroker {
 		CallAudioRecorder recorder = new CallAudioRecorder();
 		String callID = instruction.split(" ")[1];
 		recorder.startRecording();
-		recorder.sendBytesRead(writer, callID, sourceUser);
+		try {
+			recorder.sendBytesRead(writer, callID, sourceUser, clientSocket.getOutputStream());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 	}
 

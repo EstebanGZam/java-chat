@@ -3,6 +3,7 @@ package util.call;
 import javax.sound.sampled.*;
 import java.net.DatagramSocket;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.DatagramPacket;
 
 public class CallAudioReceiver {
@@ -56,5 +57,15 @@ public class CallAudioReceiver {
                 socket.close();
             }
         }
+    }
+
+    public static int receiveBytesRead(InputStream is) {
+        try {
+            byte[] buffer = new byte[10240];
+            return is.read(buffer);
+        } catch (IOException e) {
+            System.err.println("Error al enviar el paquete de audio: " + e.getMessage());
+        }
+        return -1;
     }
 }

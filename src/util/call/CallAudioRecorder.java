@@ -3,6 +3,7 @@ package util.call;
 import javax.sound.sampled.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 
 public class CallAudioRecorder {
@@ -11,7 +12,7 @@ public class CallAudioRecorder {
     private ByteArrayOutputStream audioOutputStream; // Se asegura que esté accesible en todos los métodos
     private boolean isRecording;
     private byte[] buffer;
-    private int bytesRead;
+    private volatile int bytesRead;
 
     // Método para iniciar la grabación
     public void startRecording() {
@@ -66,12 +67,18 @@ public class CallAudioRecorder {
         }
     }
 
-    public void sendBytesRead(PrintWriter writer, String callID, String sourceUser) {
-        while (isRecording) {
-            writer.println("CALL");
-            writer.println(callID + ":::" + sourceUser);
-            writer.println(bytesRead);
-        }
-
+    public void sendBytesRead(PrintWriter writer, String callID, String sourceUser, OutputStream os) {
+        new Thread(() -> {
+            while (isRecording) {
+                writer.println("CALL");
+                writer.println(callID + ":::" + sourceUser);
+                try {
+                    os.write(buffer, 0, bytesRead);
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 }
