@@ -307,10 +307,10 @@ public class ClientHandler implements Runnable {
 		} else {
 			Call call = new Call(this);
 			String callID = chatManager.addCall(call);
-			registerInCall(callID, false);
+			registerInCall(callID, true);
 			Group receiverGroup = chatManager.getGroup(groupName);
 			notifyCallToGroup(receiverGroup, sender, callID);
-			sendTextResponse("Llamada enviada a '" + receiverGroup + "'. Esperando respuesta...");
+			sendTextResponse("Llamada enviada a '" + receiverGroup.getName() + "'. Esperando respuesta...");
 			status = Status.WAITING_FOR_ANSWER;
 		}
 	}
@@ -331,7 +331,7 @@ public class ClientHandler implements Runnable {
 
 	private void notifyCall(String sender, String callID) {
 		sendTextResponse(
-				sender + " te está llamando. ¿Deseas aceptar la llamada? (/acceptCall " + callID + " o /rejectCall "
+				sender + " te esta llamando. Deseas aceptar la llamada? (/acceptCall " + callID + " o /rejectCall "
 						+ callID + ")");
 	}
 
