@@ -18,13 +18,12 @@ public class CallSenderAudio {
         }
     }
 
-    public void sendAudio(String remoteHost, int sendingPort, int bytesRead) throws IOException {
+    public void sendAudio(String remoteHost, int sendingPort, byte[] buffer) throws IOException {
         InetAddress address = InetAddress.getByName(remoteHost);
-        byte[] buffer = new byte[10240]; // Tamaño del buffer optimizado
 
         try {
             while (running) {
-                DatagramPacket packet = new DatagramPacket(buffer, bytesRead, address, sendingPort);
+                DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, sendingPort);
                 socket.send(packet);
             }
         } catch (IOException e) {
@@ -39,10 +38,10 @@ public class CallSenderAudio {
         }
     }
 
-    public void startSendingAudio(String remoteHost, int sendingPort, int bytesRead) {
+    public void startSendingAudio(String remoteHost, int sendingPort, byte[] buffer) {
         new Thread(() -> {
             try {
-                sendAudio(remoteHost, sendingPort, bytesRead);
+                sendAudio(remoteHost, sendingPort, buffer);
             } catch (IOException e) {
                 System.err.println("Error al enviar audio: " + e.getMessage());
             }

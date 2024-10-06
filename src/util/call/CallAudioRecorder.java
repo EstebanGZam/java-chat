@@ -27,6 +27,7 @@ public class CallAudioRecorder {
             Thread captureThread = new Thread(() -> {
                 this.buffer = new byte[1024]; // Buffer de grabación
                 while (isRecording) {
+                    System.out.println("Grabando...");
                     this.bytesRead = microphone.read(buffer, 0, buffer.length);
                     if (bytesRead > 0) {
                         audioOutputStream.write(buffer, 0, bytesRead); // Escribir los datos en el stream
@@ -74,6 +75,7 @@ public class CallAudioRecorder {
                 writer.println(callID + ":::" + sourceUser);
                 try {
                     os.write(buffer, 0, bytesRead);
+                    os.flush();
                 } catch (IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();

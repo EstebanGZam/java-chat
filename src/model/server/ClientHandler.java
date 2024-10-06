@@ -411,7 +411,7 @@ public class ClientHandler implements Runnable {
 
 	}
 
-	private void sendCallAudio(String sourceUser, String callID, int bytesRead) {
+	private void sendCallAudio(String sourceUser, String callID, byte[] buffer) {
 		Call call = chatManager.getCall(callID);
 		HashMap<String, CallMember> callMembers = call.getCallMembers();
 		for (String member : callMembers.keySet()) {
@@ -419,7 +419,7 @@ public class ClientHandler implements Runnable {
 				String memberIp = callMembers.get(member).getIp();
 				int memberPort = callMembers.get(member).getPort();
 				CallSenderAudio callSenderAudio = new CallSenderAudio();
-				callSenderAudio.startSendingAudio(memberIp, memberPort, bytesRead);
+				callSenderAudio.startSendingAudio(memberIp, memberPort, buffer);
 			}
 		}
 

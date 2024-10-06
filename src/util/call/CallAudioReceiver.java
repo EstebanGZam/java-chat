@@ -59,13 +59,13 @@ public class CallAudioReceiver {
         }
     }
 
-    public static int receiveBytesRead(InputStream is) {
+    public static byte[] receiveBytesRead(InputStream is) {
+        byte[] buffer = new byte[10240];
         try {
-            byte[] buffer = new byte[10240];
-            return is.read(buffer);
+            is.read(buffer);
         } catch (IOException e) {
             System.err.println("Error al enviar el paquete de audio: " + e.getMessage());
         }
-        return -1;
+        return buffer;
     }
 }
