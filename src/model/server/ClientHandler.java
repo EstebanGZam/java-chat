@@ -2,8 +2,6 @@ package model.server;
 
 import util.audio.AudioReceiver;
 import util.audio.AudioSender;
-import util.call.CallAudioReceiver;
-import util.call.CallSenderAudio;
 import model.calls.Call;
 import model.calls.CallMember;
 import model.group.Group;
@@ -11,7 +9,6 @@ import model.manager.ChatManager;
 import model.messages.Message;
 
 import java.io.*;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -91,14 +88,15 @@ public class ClientHandler implements Runnable {
 					String audioName = reader.readLine();
 					File audio = receiveAudio(audioName);
 					sendAudio(sourceUser, targetUser, audio);
-				} else if (header.equals("CALL")) {
-					String callInfo = reader.readLine();
-					String[] callParts = callInfo.split(":::");
-					String sourceUser = callParts[0];
-					String callID = callParts[1];
-					sendCallAudio(sourceUser, callID,
-							CallAudioReceiver.receiveBytesRead(clientSocket.getInputStream()));
 				}
+//				else if (header.equals("CALL")) {
+//					String callInfo = reader.readLine();
+//					String[] callParts = callInfo.split(":::");
+//					String sourceUser = callParts[0];
+//					String callID = callParts[1];
+//					sendCallAudio(sourceUser, callID,
+//							CallAudioReceiver.receiveBytesRead(clientSocket.getInputStream()));
+//				}
 			} catch (IOException e) {
 				System.out.println("'" + this.username + "' se ha desconectado del chat.");
 				chatManager.unregisterClient(this.username);
@@ -177,14 +175,14 @@ public class ClientHandler implements Runnable {
 			// Accept or reject a call request
 			String[] parts = message.split("<<<<<");
 			String instruction = parts[0];
-			String sender = parts[1];
-			handleCallResponse(sender, instruction, true);
+//			String sender = parts[1];
+			handleCallResponse(instruction, true);
 		} else if (message.startsWith("/rejectCall")) {
 			// Accept or reject a call request
 			String[] parts = message.split("<<<<<");
 			String instruction = parts[0];
-			String sender = parts[1];
-			handleCallResponse(sender, instruction, false);
+//			String sender = parts[1];
+			handleCallResponse(instruction, false);
 		} else if (message.startsWith("/endCall")) {
 			String[] parts = message.split("<<<<<");
 			String instruction = parts[0];
@@ -322,12 +320,13 @@ public class ClientHandler implements Runnable {
 			return;
 		}
 
-		Call call = new Call(this);
+		Call call = new Call();
 		String callID = chatManager.addCall(call);
 		registerInCall(callID, true);
 		Group receiverGroup = chatManager.getGroup(groupName);
 		notifyCallToGroup(receiverGroup, sender, callID);
 		sendTextResponse("Llamada enviada a '" + receiverGroup.getName() + "'. Esperando respuesta...");
+		sendTextResponse("Si quieres cancelar la llamada escribe '/rejectCall " + callID + "'");
 		status = Status.WAITING_FOR_ANSWER;
 	}
 
@@ -345,11 +344,12 @@ public class ClientHandler implements Runnable {
 			return;
 		}
 
-		Call call = new Call(this);
+		Call call = new Call();
 		String callID = chatManager.addCall(call);
 		registerInCall(callID, true);
 		receiverClient.notifyCall(sender, callID);
 		sendTextResponse("Llamada enviada a '" + receiver + "'. Esperando respuesta...");
+		sendTextResponse("Si quieres cancelar la llamada escribe '/rejectCall " + callID + "'");
 		status = Status.WAITING_FOR_ANSWER;
 	}
 
@@ -361,7 +361,7 @@ public class ClientHandler implements Runnable {
 					memberClient.notifyCall(sender, callID);
 					memberClient.status = Status.CALLED_NO_ANSWER;
 				} else {
-					memberClient.sendTextResponse("Llamada perdida de " + sender + "al grupo " + group.getName());
+					memberClient.sendTextResponse("Llamada perdida de " + sender + " al grupo " + group.getName());
 				}
 			}
 		}
@@ -369,11 +369,11 @@ public class ClientHandler implements Runnable {
 
 	private void notifyCall(String sender, String callID) {
 		sendTextResponse(
-				sender + " te esta llamando. Deseas aceptar la llamada? (/acceptCall " + callID + " o /rejectCall "
-						+ callID + ")");
+				sender + " te esta llamando. Deseas aceptar la llamada? ('/acceptCall " + callID + "' o '/rejectCall "
+						+ callID + "')");
 	}
 
-	public void handleCallResponse(String sourceUser, String instruction, boolean accepted) {
+	public void handleCallResponse(String instruction, boolean accepted) {
 		String callID = instruction.split(" ")[1];
 		if (chatManager.callExists(callID)) {
 			Call call = chatManager.getCall(callID);
@@ -382,10 +382,12 @@ public class ClientHandler implements Runnable {
 				registerInCall(callID, false);
 				sendTextResponse(
 						"Llamada aceptada. Iniciando llamada... Si deseas finalizar la llamada, escribe /endCall "
-								+ callID);
+								+ callID
+				);
 				callHost.sendTextResponse(
-						username + " ha aceptado la llamada. Iniciando llamada... Si deseas finalizar la llamada, escribe /endCall "
-								+ callID);
+						username + " ha aceptado la llamada. Iniciando llamada... Si deseas finalizar la llamada, escribe /endCall"
+								+ callID
+				);
 			} else {
 				sendTextResponse("Esta llamada ha sido rechazada.");
 				callHost.sendTextResponse(username + " ha rechazado la llamada.");
@@ -403,24 +405,9 @@ public class ClientHandler implements Runnable {
 			call.addCallMember(new CallMember(username, socket, isHost));
 			writer.println("CALL");
 			writer.println(port);
-			socket.close(); // cierra el socket temporal
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-
-	}
-
-	private void sendCallAudio(String sourceUser, String callID, byte[] buffer) {
-		Call call = chatManager.getCall(callID);
-		HashMap<String, CallMember> callMembers = call.getCallMembers();
-		for (String member : callMembers.keySet()) {
-			if (!member.equals(sourceUser)) {
-				String memberIp = callMembers.get(member).getIp();
-				int memberPort = callMembers.get(member).getPort();
-				CallSenderAudio callSenderAudio = new CallSenderAudio();
-				callSenderAudio.startSendingAudio(memberIp, memberPort, buffer);
-			}
 		}
 
 	}
@@ -465,7 +452,4 @@ public class ClientHandler implements Runnable {
 		return writer;
 	}
 
-	public String getUsername() {
-		return username;
-	}
 }

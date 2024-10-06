@@ -50,8 +50,9 @@ public class CommunicationBrokerI implements CommunicationBroker {
 				return "Audio received.";
 			case "CALL":
 				int port = Integer.parseInt(socketReader.readLine());
-
-				hearInCall(port);
+				DatagramSocket socket = new DatagramSocket(0);
+				hearInCall(socket);
+				talkInCall(socket, port);
 				return "Call established.";
 			default:
 				return "Tipo de mensaje no reconocido.";
@@ -82,7 +83,6 @@ public class CommunicationBrokerI implements CommunicationBroker {
 			startCallProcess(instruction + "<<<<<" + sourceUser);
 		} else if (instruction.startsWith("/acceptCall")) {
 			sendCallResponse(instruction + "<<<<<" + sourceUser);
-			talkInCall(instruction, sourceUser);
 		} else if (instruction.startsWith("/rejectCall")) {
 			sendCallResponse(instruction + "<<<<<" + sourceUser);
 		} else if (instruction.equals("/endCall")) {
@@ -171,27 +171,24 @@ public class CommunicationBrokerI implements CommunicationBroker {
 	}
 
 	/**
-	 * Método mejorado para grabar y enviar el audio en tiempo real durante la
-	 * llamada.
+	 * Método mejorado para recibir el audio en tiempo real durante la llamada.
 	 */
-	public void talkInCall(String instruction, String sourceUser) {
-		CallAudioRecorder recorder = new CallAudioRecorder();
-		String callID = instruction.split(" ")[1];
-		recorder.startRecording();
-		try {
-			recorder.sendBytesRead(writer, callID, sourceUser, clientSocket.getOutputStream());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
+	public void hearInCall(DatagramSocket socket) {
+//		try {
+		CallAudioReceiver receiver = new CallAudioReceiver(socket);
+		receiver.startReceiving();
+//		} catch (IOException e) {
+//			System.out.println("Error al crear el socket para recibir audio.");
+//			System.out.println(e.getMessage());
+//		}
 	}
 
 	/**
-	 * Método mejorado para recibir el audio en tiempo real durante la llamada.
+	 * Método mejorado para grabar y enviar el audio en tiempo real durante la
+	 * llamada.
 	 */
-	public void hearInCall(int port) throws IOException {
-		CallAudioReceiver receiver = new CallAudioReceiver(port);
-		receiver.startReceiving();
+	public void talkInCall(DatagramSocket datagramSocket, int serverPort) {
+		CallAudioRecorder recorder = new CallAudioRecorder();
+		recorder.startSendingOfVoice(datagramSocket, serverPort);
 	}
 }

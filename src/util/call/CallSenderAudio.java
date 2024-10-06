@@ -7,44 +7,21 @@ import java.net.InetAddress;
 
 public class CallSenderAudio {
 
-    private boolean running = true;
-    private DatagramSocket socket;
+	//	private boolean running = true;
+	private final DatagramSocket socket;
 
-    public CallSenderAudio() {
-        try {
-            this.socket = new DatagramSocket();
-        } catch (IOException e) {
-            System.err.println("Error al crear el socket para enviar audio: " + e.getMessage());
-        }
-    }
+	public CallSenderAudio(DatagramSocket socket) {
+		this.socket = socket;
+	}
 
-    public void sendAudio(String remoteHost, int sendingPort, byte[] buffer) throws IOException {
-        InetAddress address = InetAddress.getByName(remoteHost);
+	public void sendAudio(String remoteHost, int sendingPort, byte[] buffer) throws IOException {
+		InetAddress address = InetAddress.getByName(remoteHost);
 
-        try {
-            while (running) {
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, sendingPort);
-                socket.send(packet);
-            }
-        } catch (IOException e) {
-            System.err.println("Error al enviar el paquete de audio: " + e.getMessage());
-        }
-    }
-
-    public void stop() {
-        running = false;
-        if (socket != null && !socket.isClosed()) {
-            socket.close(); // Cerrar el socket
-        }
-    }
-
-    public void startSendingAudio(String remoteHost, int sendingPort, byte[] buffer) {
-        new Thread(() -> {
-            try {
-                sendAudio(remoteHost, sendingPort, buffer);
-            } catch (IOException e) {
-                System.err.println("Error al enviar audio: " + e.getMessage());
-            }
-        }).start();
-    }
+		try {
+			DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, sendingPort);
+			this.socket.send(packet);
+		} catch (IOException e) {
+			System.err.println("Error al enviar el paquete de audio: " + e.getMessage());
+		}
+	}
 }

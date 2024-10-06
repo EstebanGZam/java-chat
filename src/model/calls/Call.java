@@ -13,7 +13,7 @@ public class Call {
     private Status status = Status.ON_HOLD;
     private HashMap<String, CallMember> callMembers;
 
-    public Call(ClientHandler callHost) {
+    public Call() {
         callMembers = new HashMap<>();
     }
 
