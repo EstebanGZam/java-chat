@@ -87,6 +87,8 @@ public class CommunicationBrokerI implements CommunicationBroker {
 			sendCallResponse(instruction + "<<<<<" + sourceUser);
 		} else if (instruction.equals("/endCall")) {
 			endCall(instruction + "<<<<<" + sourceUser);
+		} else if (instruction.equals("/call")) {
+			startCallProcess(instruction + "<<<<<" + sourceUser);
 		}
 	}
 

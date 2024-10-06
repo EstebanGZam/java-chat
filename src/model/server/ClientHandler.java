@@ -190,6 +190,11 @@ public class ClientHandler implements Runnable {
 			String instruction = parts[0];
 			String sender = parts[1];
 			exitFromCall(sender, instruction);
+		} else if (message.startsWith("/call")) {
+			String[] parts = message.split("<<<<<");
+			String instruction = parts[0];
+			String sender = parts[1];
+			sendUserCallRequest(sender, instruction);
 		}
 	}
 
@@ -326,6 +331,28 @@ public class ClientHandler implements Runnable {
 		status = Status.WAITING_FOR_ANSWER;
 	}
 
+	private void sendUserCallRequest(String sender, String instruction) {
+		String[] parts = instruction.split(" ");
+		String receiver = parts[1];
+		if (!chatManager.clientExists(receiver)) {
+			sendTextResponse("El usuario '" + receiver + "' no existe.");
+			return;
+		}
+
+		ClientHandler receiverClient = chatManager.getClient(receiver);
+		if (receiverClient.status != Status.AVAILABLE) {
+			sendTextResponse("El usuario '" + receiver + "' está ocupado.");
+			return;
+		}
+
+		Call call = new Call(this);
+		String callID = chatManager.addCall(call);
+		registerInCall(callID, true);
+		receiverClient.notifyCall(sender, callID);
+		sendTextResponse("Llamada enviada a '" + receiver + "'. Esperando respuesta...");
+		status = Status.WAITING_FOR_ANSWER;
+	}
+
 	private void notifyCallToGroup(Group group, String sender, String callID) {
 		for (String member : group.getMembers()) {
 			if (!member.equals(username)) {
@@ -405,7 +432,7 @@ public class ClientHandler implements Runnable {
 			return;
 		}
 		if (status == Status.AVAILABLE) {
-			sendTextResponse("Llamada finalizada.");
+			sendTextResponse("No estás en una llamada.");
 			return;
 		}
 		Call call = chatManager.getCall(callID);
