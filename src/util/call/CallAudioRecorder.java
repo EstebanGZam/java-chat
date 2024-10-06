@@ -3,12 +3,15 @@ package util.call;
 import javax.sound.sampled.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 public class CallAudioRecorder {
     // Atributos de la clase
     private TargetDataLine microphone;
     private ByteArrayOutputStream audioOutputStream; // Se asegura que esté accesible en todos los métodos
     private boolean isRecording;
+    private byte[] buffer;
+    private int bytesRead;
 
     // Método para iniciar la grabación
     public void startRecording() {
@@ -19,16 +22,13 @@ public class CallAudioRecorder {
             microphone.open(format);
             microphone.start();
 
-            audioOutputStream = new ByteArrayOutputStream(); // Inicializar el stream aquí
-            isRecording = true;
-
             // Iniciar un hilo para capturar el audio
             Thread captureThread = new Thread(() -> {
-                byte[] buffer = new byte[1024]; // Buffer de grabación
+                this.buffer = new byte[1024]; // Buffer de grabación
                 while (isRecording) {
-                    int bytesRead = microphone.read(buffer, 0, buffer.length);
+                    this.bytesRead = microphone.read(buffer, 0, buffer.length);
                     if (bytesRead > 0) {
-                        audioOutputStream.write(buffer, 0, bytesRead);
+                        audioOutputStream.write(buffer, 0, bytesRead); // Escribir los datos en el stream
                     }
                 }
             });
@@ -46,6 +46,14 @@ public class CallAudioRecorder {
         return audioData;
     }
 
+    public int getBytesRead() {
+        return bytesRead;
+    }
+
+    public TargetDataLine getMicrophone() {
+        return microphone;
+    }
+
     // Método para detener la grabación
     public void stopRecording() {
         isRecording = false;
@@ -56,5 +64,14 @@ public class CallAudioRecorder {
         } catch (IOException e) {
             System.err.println("Error al cerrar el stream de audio: " + e.getMessage());
         }
+    }
+
+    public void sendBytesRead(PrintWriter writer, String callID, String sourceUser) {
+        while (isRecording) {
+            writer.println("CALL");
+            writer.println(callID + ":::" + sourceUser);
+            writer.println(bytesRead);
+        }
+
     }
 }

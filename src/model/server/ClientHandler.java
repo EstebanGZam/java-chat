@@ -2,6 +2,7 @@ package model.server;
 
 import util.audio.AudioReceiver;
 import util.audio.AudioSender;
+import util.call.CallSenderAudio;
 import model.calls.Call;
 import model.calls.CallMember;
 import model.group.Group;
@@ -9,6 +10,7 @@ import model.manager.ChatManager;
 import model.messages.Message;
 
 import java.io.*;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -85,7 +87,12 @@ public class ClientHandler implements Runnable {
 					File audio = receiveAudio(audioName);
 					sendAudio(sourceUser, targetUser, audio);
 				} else if (header.equals("CALL")) {
-
+					String callInfo = reader.readLine();
+					String[] callParts = callInfo.split(":::");
+					String sourceUser = callParts[0];
+					String callID = callParts[1];
+					int bytesRead = Integer.parseInt(reader.readLine());
+					sendCallAudio(sourceUser, callID, bytesRead);
 				}
 			} catch (IOException e) {
 				System.out.println("'" + this.username + "' se ha desconectado del chat.");
@@ -155,7 +162,7 @@ public class ClientHandler implements Runnable {
 			sendGroupMessage(groupName, groupMessage);
 		} else if (message.equals("/listGroups")) {
 			listGroups();
-		} else if (message.startsWith("/call")) {
+		} else if (message.startsWith("/groupCall")) {
 			// Send a call request to another client
 			String[] parts = message.split("<<<<<");
 			String instruction = parts[0];
@@ -173,6 +180,11 @@ public class ClientHandler implements Runnable {
 			String instruction = parts[0];
 			String sender = parts[1];
 			handleCallResponse(sender, instruction, false);
+		} else if (message.startsWith("/endCall")) {
+			String[] parts = message.split("<<<<<");
+			String instruction = parts[0];
+			String sender = parts[1];
+			exitFromCall(sender, instruction);
 		}
 	}
 
@@ -329,7 +341,9 @@ public class ClientHandler implements Runnable {
 		if (chatManager.callExists(callID)) {
 			if (accepted) {
 				registerInCall(callID);
-				sendTextResponse("Llamada aceptada. Iniciando...");
+				sendTextResponse(
+						"Llamada aceptada. Iniciando llamada... Si deseas finalizar la llamada, escribe /endCall "
+								+ callID);
 				sourceClient.sendTextResponse(username + " ha aceptado la llamada.");
 			} else {
 				sendTextResponse("Has rechazado la llamada.");
@@ -355,6 +369,34 @@ public class ClientHandler implements Runnable {
 			e.printStackTrace();
 		}
 
+	}
+
+	private void sendCallAudio(String sourceUser, String callID, int bytesRead) {
+		Call call = chatManager.getCall(callID);
+		HashMap<String, CallMember> callMembers = call.getCallMembers();
+		for (String member : callMembers.keySet()) {
+			if (!member.equals(sourceUser)) {
+				String memberIp = callMembers.get(member).getIp();
+				int memberPort = callMembers.get(member).getPort();
+				CallSenderAudio callSenderAudio = new CallSenderAudio();
+				callSenderAudio.startSendingAudio(memberIp, memberPort, bytesRead);
+			}
+		}
+
+	}
+
+	private void exitFromCall(String sender, String instruction) {
+		String callID = instruction.split(" ")[1];
+		Call call = chatManager.getCall(callID);
+		call.removeCallMember(callID);
+		status = Status.AVAILABLE;
+		if (call.numberOfCallMembers() == 0) {
+			endCall(callID);
+		}
+	}
+
+	private void endCall(String callID) {
+		chatManager.removeCall(callID);
 	}
 
 	/**

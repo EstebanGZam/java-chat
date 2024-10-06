@@ -2,11 +2,11 @@ package util.communication;
 
 import util.audio.AudioReceiver;
 import util.audio.AudioSender;
+import util.call.CallAudioReceiver;
 import util.call.CallAudioRecorder;
 
 import java.io.*;
 import java.net.*;
-import javax.sound.sampled.*;
 
 import static model.client.Client.RECEIVED_AUDIO_PATH;
 
@@ -58,9 +58,9 @@ public class CommunicationBrokerI implements CommunicationBroker {
 	}
 
 	@Override
-	public void endCall() {
+	public void endCall(String instruction) {
 		writer.println("TEXT");
-		writer.println("/endCall");
+		writer.println(instruction);
 	}
 
 	@Override
@@ -77,12 +77,13 @@ public class CommunicationBrokerI implements CommunicationBroker {
 			listGroups(instruction);
 		} else if (instruction.startsWith("/groupMsg")) {
 			sendGroupMessage(instruction);
-		} else if (instruction.startsWith("/call")) {
+		} else if (instruction.startsWith("/groupCall")) {
 			startCallProcess(instruction);
 		} else if (instruction.startsWith("/acceptCall")) {
 			acceptCall(instruction + "<<<<<" + sourceUser);
+			talkInCall(instruction, sourceUser);
 		} else if (instruction.equals("/endCall")) {
-			endCall();
+			endCall(instruction + "<<<<<" + sourceUser);
 		}
 	}
 
@@ -168,64 +169,19 @@ public class CommunicationBrokerI implements CommunicationBroker {
 	 * Método mejorado para grabar y enviar el audio en tiempo real durante la
 	 * llamada.
 	 */
-	public void talkInCall(int port) {
-		try {
-			DatagramSocket audioSocket = new DatagramSocket();
-			InetAddress receiverAddress = InetAddress.getByName("localhost"); // Dirección del servidor o cliente
+	public void talkInCall(String instruction, String sourceUser) {
+		CallAudioRecorder recorder = new CallAudioRecorder();
+		String callID = instruction.split(" ")[1];
+		recorder.startRecording();
+		recorder.sendBytesRead(writer, callID, sourceUser);
 
-			CallAudioRecorder recorder = new CallAudioRecorder();
-			recorder.startRecording();
-
-			while (true) {
-				byte[] audioData = recorder.getRecordedData(); // Obtener fragmento de audio
-				DatagramPacket packet = new DatagramPacket(audioData, audioData.length, receiverAddress, port);
-				audioSocket.send(packet); // Enviar el fragmento de audio
-
-				// Verificar si la llamada terminó
-				if (socketReader.ready() && socketReader.readLine().equals("/endCall")) {
-					recorder.stopRecording();
-					break;
-				}
-			}
-			audioSocket.close();
-		} catch (IOException e) {
-			System.err.println("Error durante la transmisión de la llamada: " + e.getMessage());
-		}
 	}
 
 	/**
 	 * Método mejorado para recibir el audio en tiempo real durante la llamada.
 	 */
 	public void hearInCall(int port) throws IOException {
-		DatagramSocket audioSocket = new DatagramSocket(port);
-		AudioFormat format = new AudioFormat(44100, 16, 1, true, true);
-		SourceDataLine speaker;
-
-		try {
-			DataLine.Info infoSpeaker = new DataLine.Info(SourceDataLine.class, format);
-			speaker = (SourceDataLine) AudioSystem.getLine(infoSpeaker);
-			speaker.open(format);
-			speaker.start();
-
-			byte[] buffer = new byte[10240]; // Tamaño del buffer para los paquetes de audio
-
-			while (true) {
-				DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-				audioSocket.receive(packet); // Recibir fragmento de audio
-				speaker.write(packet.getData(), 0, packet.getLength()); // Reproducir audio
-
-				// Verificar si la llamada terminó
-				if (socketReader.ready() && socketReader.readLine().equals("/endCall")) {
-					break;
-				}
-			}
-
-			speaker.drain();
-			speaker.close();
-		} catch (LineUnavailableException e) {
-			System.err.println("Error al inicializar el altavoz: " + e.getMessage());
-		} finally {
-			audioSocket.close();
-		}
+		CallAudioReceiver receiver = new CallAudioReceiver(port);
+		receiver.startReceiving();
 	}
 }

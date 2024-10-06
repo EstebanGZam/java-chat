@@ -203,4 +203,8 @@ public class ChatManager {
 	public Call getCall(String callID) {
 		return calls.get(callID);
 	}
+
+	public void removeCall(String callID) {
+		calls.remove(callID);
+	}
 }

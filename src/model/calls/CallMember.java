@@ -1,17 +1,29 @@
 package model.calls;
 
 import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+import util.call.CallSenderAudio;
 
 public class CallMember {
 
     private String username;
     private DatagramSocket socket;
     private int port;
+    private String ip;
+    private CallSenderAudio callSenderAudio = new CallSenderAudio();
 
     public CallMember(String username, DatagramSocket socket) {
         this.username = username;
         this.socket = socket;
         this.port = socket.getLocalPort();
+        try {
+            this.ip = InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     public String getUsername() {
@@ -24,6 +36,10 @@ public class CallMember {
 
     public int getPort() {
         return port;
+    }
+
+    public String getIp() {
+        return ip;
     }
 
 }

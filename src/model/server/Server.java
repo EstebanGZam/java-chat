@@ -13,7 +13,7 @@ import java.util.concurrent.ExecutorService;
 public class Server {
 	private final ExecutorService pool;
 	private final ChatManager chatManager;
-	public static final String IP = "127.0.0.1";
+	public static final String IP = "192.168.43.92";
 	public static final int PORT = 10000;
 
 	private Server() {
@@ -51,7 +51,8 @@ public class Server {
 	/**
 	 * Registers a client with its corresponding socket.
 	 * <p>
-	 * This method associates a client with its unique ID and a handler that will be used to communicate with it.
+	 * This method associates a client with its unique ID and a handler that will be
+	 * used to communicate with it.
 	 *
 	 * @param clientSocket the socket of the client to register
 	 * @throws IOException If an I/O error occurs while registering the client

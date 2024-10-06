@@ -12,7 +12,6 @@ public class Call {
 
     private Status status = Status.ON_HOLD;
     private HashMap<String, CallMember> callMembers;
-    public boolean isRunning = true;
 
     public Call(ClientHandler callHost) {
         callMembers = new HashMap<>();
@@ -34,12 +33,20 @@ public class Call {
         return callMembers.containsKey(username);
     }
 
+    public HashMap<String, CallMember> getCallMembers() {
+        return callMembers;
+    }
+
     public Status getStatus() {
         return status;
     }
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public int numberOfCallMembers() {
+        return callMembers.size();
     }
 
 }
