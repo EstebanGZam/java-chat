@@ -192,6 +192,19 @@ public class ClientHandler implements Runnable {
 			String instruction = parts[0];
 			String sender = parts[1];
 			sendUserCallRequest(sender, instruction);
+		} else if (message.startsWith("/validateTarget")) {
+			String target = message.split("<<<<<")[1];
+			// Verificar si es un usuario
+			if (chatManager.clientExists(target)) {
+				sendTextResponse("Valid");
+				return;
+			}
+			// Verificar si es un grupo
+			if (chatManager.groupExists(target)) {
+				sendTextResponse("Valid");
+				return;
+			}
+			sendTextResponse("Error: El destinatario '" + target + "' no existe.");
 		}
 	}
 

@@ -202,4 +202,12 @@ public class CommunicationBrokerI implements CommunicationBroker {
 		this.player.stopPlaying();
 		this.udpSocket.close();
 	}
+
+	@Override
+	public String validateRecordTarget(String target) throws IOException {
+		writer.println("TEXT");
+		writer.println("/validateTarget<<<<<" + target);
+		writer.flush();
+		return socketReader.readLine();
+	}
 }
