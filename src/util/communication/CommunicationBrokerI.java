@@ -82,9 +82,9 @@ public class CommunicationBrokerI implements CommunicationBroker {
 			sendCallResponse(instruction + "<<<<<" + sourceUser);
 		} else if (instruction.startsWith("/rejectCall")) {
 			sendCallResponse(instruction + "<<<<<" + sourceUser);
-		} else if (instruction.equals("/endCall")) {
+		} else if (instruction.startsWith("/endCall")) {
 			endCall(instruction + "<<<<<" + sourceUser);
-		} else if (instruction.equals("/call")) {
+		} else if (instruction.startsWith("/call")) {
 			startCallProcess(instruction + "<<<<<" + sourceUser);
 		}
 	}

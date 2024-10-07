@@ -90,9 +90,8 @@ public class Client {
 		// <nombre_audio> <usuario_destino>");
 		System.out.println("Para reproducir un mensaje de audio, escribe: /play <nombre_audio>");
 		System.out.println("Para salir ver el historial de mensajes, escribe: /msgHistory");
-		System.out.println("Para realizar una llamada a otro cliente, escribe: /groupCall <nombre_del_grupo>");
-		// System.out.println("Para salir ver el historial de mensajes, escribe:
-		// /msgHistory");
+		System.out.println("Para realizar una llamada a un grupo, escribe: /groupCall <nombre_del_grupo>");
+		System.out.println("Para realizar una llamada a otro cliente, escribe: /call <nombre_del_cliente>");
 		System.out.println("Para salir del chat, escribe: exit");
 		System.out.println(
 				"----------------------------------------------------------------------------------------------");
