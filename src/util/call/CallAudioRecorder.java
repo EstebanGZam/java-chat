@@ -25,31 +25,12 @@ public class CallAudioRecorder {
 			this.buffer = new byte[1024]; // Buffer de grabación
 			while (isRecording) {
 				this.bytesRead = microphone.read(buffer, 0, buffer.length);
-				try {
-					callSenderAudio.sendAudio(Server.IP, serverPort, buffer);
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
+				callSenderAudio.sendAudio(Server.IP, serverPort, this.bytesRead, buffer);
 			}
 		});
 
 		captureThread.start();
 
-	}
-
-	// Método para obtener los datos grabados
-	public byte[] getRecordedData() {
-		byte[] audioData = audioOutputStream.toByteArray(); // Obtener los datos del audio grabado
-		audioOutputStream.reset(); // Limpiar el stream después de leer
-		return audioData;
-	}
-
-	public int getBytesRead() {
-		return bytesRead;
-	}
-
-	public TargetDataLine getMicrophone() {
-		return microphone;
 	}
 
 	private void initRecorder() {
@@ -76,19 +57,4 @@ public class CallAudioRecorder {
 		}
 	}
 
-//    public void sendBytesRead(PrintWriter writer, String callID, String sourceUser, OutputStream os) {
-//        new Thread(() -> {
-//            while (isRecording) {
-//                writer.println("CALL");
-//                writer.println(callID + ":::" + sourceUser);
-//                try {
-//                    os.write(buffer, 0, bytesRead);
-//                    os.flush();
-//                } catch (IOException e) {
-//                    // TODO Auto-generated catch block
-//                    e.printStackTrace();
-//                }
-//            }
-//        }).start();
-//    }
 }

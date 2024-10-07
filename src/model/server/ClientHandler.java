@@ -402,12 +402,16 @@ public class ClientHandler implements Runnable {
 			DatagramSocket socket = new DatagramSocket(0); // crea un socket temporal con un puerto disponible
 			Call call = chatManager.getCall(callID);
 			int port = socket.getLocalPort();
-			call.addCallMember(new CallMember(username, socket, isHost));
 			writer.println("CALL");
 			writer.println(port);
+			int clientPort = Integer.parseInt(reader.readLine());
+			String clientInetAddress = reader.readLine();
+			call.addCallMember(new CallMember(username, socket, clientPort, clientInetAddress, isHost));
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
 		}
 
 	}
@@ -423,7 +427,8 @@ public class ClientHandler implements Runnable {
 			return;
 		}
 		Call call = chatManager.getCall(callID);
-		call.removeCallMember(callID);
+		call.getCallMember(sender).finishCall();
+		call.removeCallMember(sender);
 		status = Status.AVAILABLE;
 		if (call.numberOfCallMembers() == 0) {
 			endCall(callID);

@@ -2,9 +2,10 @@ package util.communication;
 
 import util.audio.AudioReceiver;
 import util.audio.AudioSender;
-import util.call.CallAudioReceiver;
+import util.call.CallAudioPlayer;
 import util.call.CallAudioRecorder;
 
+import javax.sound.sampled.LineUnavailableException;
 import java.io.*;
 import java.net.*;
 
@@ -14,9 +15,6 @@ public class CommunicationBrokerI implements CommunicationBroker {
 	private final Socket clientSocket;
 	private final BufferedReader socketReader;
 	private final PrintWriter writer;
-
-	// Puerto por donde se enviará y recibirá el audio en las llamadas
-	// private int callPort;
 
 	public CommunicationBrokerI(Socket clientSocket) throws IOException {
 		this.clientSocket = clientSocket;
@@ -53,6 +51,8 @@ public class CommunicationBrokerI implements CommunicationBroker {
 				DatagramSocket socket = new DatagramSocket(0);
 				hearInCall(socket);
 				talkInCall(socket, port);
+				writer.println(socket.getLocalPort());
+				writer.println(InetAddress.getLocalHost().getHostAddress());
 				return "Call established.";
 			default:
 				return "Tipo de mensaje no reconocido.";
@@ -174,13 +174,12 @@ public class CommunicationBrokerI implements CommunicationBroker {
 	 * Método mejorado para recibir el audio en tiempo real durante la llamada.
 	 */
 	public void hearInCall(DatagramSocket socket) {
-//		try {
-		CallAudioReceiver receiver = new CallAudioReceiver(socket);
-		receiver.startReceiving();
-//		} catch (IOException e) {
-//			System.out.println("Error al crear el socket para recibir audio.");
-//			System.out.println(e.getMessage());
-//		}
+		try {
+			CallAudioPlayer player = new CallAudioPlayer();
+			player.startPlayingReceivedVoice(socket);
+		} catch (LineUnavailableException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
