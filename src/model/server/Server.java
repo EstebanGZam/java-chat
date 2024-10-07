@@ -13,7 +13,7 @@ import java.util.concurrent.ExecutorService;
 public class Server {
 	private final ExecutorService pool;
 	private final ChatManager chatManager;
-	public static final String IP = "172.26.210.99";
+	public static final String IP = "192.168.1.7";
 	public static final int PORT = 10000;
 
 	private Server() {

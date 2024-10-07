@@ -187,6 +187,10 @@ public class ChatManager {
 		messageHistory.put(
 				messagesID = messagesID.add(BigInteger.ONE), // Incremento el ID antes de guardar
 				newMessage);
+		
+	   String audioName = audio.getFileName();
+
+	   MessagePersistence.saveAudio(sender, receiver, audioName);
 	}
 
 	public String addCall(Call call) {

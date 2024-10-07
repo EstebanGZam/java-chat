@@ -6,6 +6,9 @@ import util.call.CallAudioPlayer;
 import util.call.CallAudioRecorder;
 
 import javax.sound.sampled.LineUnavailableException;
+
+import model.persistence.MessagePersistence;
+
 import java.io.*;
 import java.net.*;
 
@@ -103,6 +106,9 @@ public class CommunicationBrokerI implements CommunicationBroker {
 
 		AudioSender audioSender = new AudioSender();
 		audioSender.sendAudio(writer, audioFile);
+		String audioName = audioFile.getName();
+		MessagePersistence.saveAudio(sourceUser, targetUser, audioName);
+
 	}
 
 	private void receiveAudio() {

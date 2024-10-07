@@ -28,6 +28,20 @@ public class MessagePersistence {
         }
     }
 
+    public static synchronized void saveAudio(String sender, String receiver, String nameAudio){
+        try (FileWriter fw = new FileWriter(FILE_NAME, true);
+             BufferedWriter bw = new BufferedWriter(fw);
+             PrintWriter out = new PrintWriter(bw)) {
+
+            // Formato: mensaje de [emisor] a [receptor] : [mensaje]
+            out.println("audio de [" + sender + "] a [" + receiver + "] : [" + nameAudio + "]");
+
+        } catch (IOException e) {
+            System.out.println("Error while saving message to " + FILE_NAME + ": " + e.getMessage());
+        }
+
+    }
+
     /**
      * Prints the last 5 messages from the chat history file to the console.
      * If there are fewer than 5 messages, it prints all available messages.

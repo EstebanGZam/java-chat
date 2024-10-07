@@ -120,9 +120,12 @@ public class ClientHandler implements Runnable {
 
 			AudioSender audioSender = new AudioSender();
 			audioSender.sendAudio(targetWriter, audioFile);
+			
 		} catch (IOException e) {
 			System.out.println("Error al reenviar el archivo de audio: " + e.getMessage());
 		}
+
+		
 	}
 
 	private File receiveAudio(String audioName) {
