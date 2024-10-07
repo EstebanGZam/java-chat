@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.net.DatagramSocket;
-import java.net.Socket;
 import java.net.SocketException;
 
 public class ClientHandler implements Runnable {
@@ -47,13 +46,10 @@ public class ClientHandler implements Runnable {
 	 */
 	private final BufferedReader reader;
 
-	private final Socket clientSocket;
-
-	public ClientHandler(String username, BufferedReader reader, PrintWriter writer, Socket clientSocket) {
+	public ClientHandler(String username, BufferedReader reader, PrintWriter writer) {
 		this.username = username;
 		this.reader = reader;
 		this.writer = writer;
-		this.clientSocket = clientSocket;
 	}
 
 	/**
@@ -89,14 +85,14 @@ public class ClientHandler implements Runnable {
 					File audio = receiveAudio(audioName);
 					sendAudio(sourceUser, targetUser, audio);
 				}
-//				else if (header.equals("CALL")) {
-//					String callInfo = reader.readLine();
-//					String[] callParts = callInfo.split(":::");
-//					String sourceUser = callParts[0];
-//					String callID = callParts[1];
-//					sendCallAudio(sourceUser, callID,
-//							CallAudioReceiver.receiveBytesRead(clientSocket.getInputStream()));
-//				}
+				// else if (header.equals("CALL")) {
+				// String callInfo = reader.readLine();
+				// String[] callParts = callInfo.split(":::");
+				// String sourceUser = callParts[0];
+				// String callID = callParts[1];
+				// sendCallAudio(sourceUser, callID,
+				// CallAudioReceiver.receiveBytesRead(clientSocket.getInputStream()));
+				// }
 			} catch (IOException e) {
 				System.out.println("'" + this.username + "' se ha desconectado del chat.");
 				chatManager.unregisterClient(this.username);
@@ -175,13 +171,13 @@ public class ClientHandler implements Runnable {
 			// Accept or reject a call request
 			String[] parts = message.split("<<<<<");
 			String instruction = parts[0];
-//			String sender = parts[1];
+			// String sender = parts[1];
 			handleCallResponse(instruction, true);
 		} else if (message.startsWith("/rejectCall")) {
 			// Accept or reject a call request
 			String[] parts = message.split("<<<<<");
 			String instruction = parts[0];
-//			String sender = parts[1];
+			// String sender = parts[1];
 			handleCallResponse(instruction, false);
 		} else if (message.startsWith("/endCall")) {
 			String[] parts = message.split("<<<<<");
@@ -382,12 +378,10 @@ public class ClientHandler implements Runnable {
 				registerInCall(callID, false);
 				sendTextResponse(
 						"Llamada aceptada. Iniciando llamada... Si deseas finalizar la llamada, escribe /endCall "
-								+ callID
-				);
+								+ callID);
 				callHost.sendTextResponse(
 						username + " ha aceptado la llamada. Iniciando llamada... Si deseas finalizar la llamada, escribe /endCall "
-								+ callID
-				);
+								+ callID);
 			} else {
 				sendTextResponse("Esta llamada ha sido rechazada.");
 				callHost.sendTextResponse(username + " ha rechazado la llamada.");
