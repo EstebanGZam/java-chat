@@ -385,7 +385,7 @@ public class ClientHandler implements Runnable {
 								+ callID
 				);
 				callHost.sendTextResponse(
-						username + " ha aceptado la llamada. Iniciando llamada... Si deseas finalizar la llamada, escribe /endCall"
+						username + " ha aceptado la llamada. Iniciando llamada... Si deseas finalizar la llamada, escribe /endCall "
 								+ callID
 				);
 			} else {
@@ -406,7 +406,7 @@ public class ClientHandler implements Runnable {
 			writer.println(port);
 			int clientPort = Integer.parseInt(reader.readLine());
 			String clientInetAddress = reader.readLine();
-			call.addCallMember(new CallMember(username, socket, clientPort, clientInetAddress, isHost));
+			call.addCallMember(new CallMember(call, username, socket, clientPort, clientInetAddress, isHost));
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -22,7 +22,7 @@ public class CallAudioRecorder {
 		Thread captureThread = new Thread(() -> {
 			CallSenderAudio callSenderAudio = new CallSenderAudio(datagramSocket);
 
-			this.buffer = new byte[1024]; // Buffer de grabación
+			this.buffer = new byte[10240]; // Buffer de grabación
 			while (isRecording) {
 				this.bytesRead = microphone.read(buffer, 0, buffer.length);
 				callSenderAudio.sendAudio(Server.IP, serverPort, this.bytesRead, buffer);
