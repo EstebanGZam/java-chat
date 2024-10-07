@@ -228,11 +228,16 @@ public class Client {
 	 *
 	 * @param instruction the instruction or message to be processed
 	 */
-	public void processInstruction(String instruction) {
+	public void processInstruction(String instruction) throws IOException {
 		String audioName;
 		instruction = instruction.trim();
 		if (instruction.startsWith("/record")) {
 			String targetUser = instruction.split(" ")[1];
+			String response = communicationBroker.validateRecordTarget(targetUser);
+			if (response.startsWith("Error")) {
+				System.out.println(response);
+				return;
+			}
 			SecureRandom secureRandom = new SecureRandom();
 			audioName = "aud-from-" + this.username + "-" + (10000 + secureRandom.nextInt(90000));
 			startAudioRecording(targetUser, audioName);

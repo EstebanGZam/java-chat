@@ -95,4 +95,6 @@ public interface CommunicationBroker {
 	 * @throws IOException If there's an issue with network communication.
 	 */
 	void endCall(String instruction) throws IOException;
+
+	String validateRecordTarget(String target) throws IOException;
 }
