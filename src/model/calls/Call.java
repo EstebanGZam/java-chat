@@ -1,8 +1,8 @@
 package model.calls;
 
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
 
-import model.server.ClientHandler;
 
 public class Call {
 
@@ -10,15 +10,18 @@ public class Call {
 		ON_HOLD, ACTIVE
 	}
 
+	private final ExecutorService pool;
 	private Status status = Status.ON_HOLD;
-	private HashMap<String, CallMember> callMembers;
+	private final HashMap<String, CallMember> callMembers;
 
 	public Call() {
+		this.pool = java.util.concurrent.Executors.newFixedThreadPool(10);
 		callMembers = new HashMap<>();
 	}
 
 	public void addCallMember(CallMember callMember) {
 		callMembers.put(callMember.getUsername(), callMember);
+		pool.execute(callMember);
 	}
 
 	public CallMember getCallMember(String username) {
@@ -26,6 +29,7 @@ public class Call {
 	}
 
 	public void removeCallMember(String username) {
+		getCallMember(username).finishCall();
 		callMembers.remove(username);
 	}
 
@@ -40,6 +44,7 @@ public class Call {
 	public Status getStatus() {
 		return status;
 	}
+
 
 	public void setStatus(Status status) {
 		this.status = status;

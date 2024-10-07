@@ -15,6 +15,9 @@ public class CommunicationBrokerI implements CommunicationBroker {
 	private final Socket clientSocket;
 	private final BufferedReader socketReader;
 	private final PrintWriter writer;
+	private CallAudioRecorder recorder;
+	private CallAudioPlayer player;
+	private DatagramSocket udpSocket;
 
 	public CommunicationBrokerI(Socket clientSocket) throws IOException {
 		this.clientSocket = clientSocket;
@@ -48,21 +51,15 @@ public class CommunicationBrokerI implements CommunicationBroker {
 				return "Audio received.";
 			case "CALL":
 				int port = Integer.parseInt(socketReader.readLine());
-				DatagramSocket socket = new DatagramSocket(0);
-				hearInCall(socket);
-				talkInCall(socket, port);
-				writer.println(socket.getLocalPort());
+				this.udpSocket = new DatagramSocket(0);
+				hearInCall(this.udpSocket);
+				talkInCall(this.udpSocket, port);
+				writer.println(this.udpSocket.getLocalPort());
 				writer.println(InetAddress.getLocalHost().getHostAddress());
 				return "Call established.";
 			default:
 				return "Tipo de mensaje no reconocido.";
 		}
-	}
-
-	@Override
-	public void endCall(String instruction) {
-		writer.println("TEXT");
-		writer.println(instruction);
 	}
 
 	@Override
@@ -175,8 +172,8 @@ public class CommunicationBrokerI implements CommunicationBroker {
 	 */
 	public void hearInCall(DatagramSocket socket) {
 		try {
-			CallAudioPlayer player = new CallAudioPlayer();
-			player.startPlayingReceivedVoice(socket);
+			this.player = new CallAudioPlayer();
+			this.player.startPlayingReceivedVoice(socket);
 		} catch (LineUnavailableException e) {
 			e.printStackTrace();
 		}
@@ -187,7 +184,16 @@ public class CommunicationBrokerI implements CommunicationBroker {
 	 * llamada.
 	 */
 	public void talkInCall(DatagramSocket datagramSocket, int serverPort) {
-		CallAudioRecorder recorder = new CallAudioRecorder();
-		recorder.startSendingOfVoice(datagramSocket, serverPort);
+		this.recorder = new CallAudioRecorder();
+		this.recorder.startSendingOfVoice(datagramSocket, serverPort);
+	}
+
+	@Override
+	public void endCall(String instruction) {
+		writer.println("TEXT");
+		writer.println(instruction);
+		this.recorder.stopRecording();
+		this.player.stopPlaying();
+		this.udpSocket.close();
 	}
 }

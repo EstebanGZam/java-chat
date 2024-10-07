@@ -5,6 +5,7 @@ import java.net.DatagramSocket;
 
 public class CallAudioPlayer {
 	SourceDataLine speaker;
+	private boolean isPlaying = true;
 
 	public CallAudioPlayer() throws LineUnavailableException {
 		AudioFormat format = new AudioFormat(44100, 16, 1, true, true);
@@ -17,10 +18,16 @@ public class CallAudioPlayer {
 	public void startPlayingReceivedVoice(DatagramSocket datagramSocket) {
 		new Thread(() -> {
 			CallAudioReceiver receiver = new CallAudioReceiver(datagramSocket);
-			while (true) {
+			while (isPlaying) {
 				byte[] buffer = receiver.receiveAudio();
 				this.speaker.write(buffer, 0, buffer.length);
 			}
 		}).start();
+	}
+
+	public void stopPlaying() {
+		this.isPlaying = false;
+		this.speaker.drain();
+		this.speaker.close();
 	}
 }

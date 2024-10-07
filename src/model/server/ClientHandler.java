@@ -427,7 +427,6 @@ public class ClientHandler implements Runnable {
 			return;
 		}
 		Call call = chatManager.getCall(callID);
-		call.getCallMember(sender).finishCall();
 		call.removeCallMember(sender);
 		status = Status.AVAILABLE;
 		if (call.numberOfCallMembers() == 0) {
