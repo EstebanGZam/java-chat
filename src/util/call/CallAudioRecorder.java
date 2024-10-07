@@ -18,7 +18,6 @@ public class CallAudioRecorder {
         isRecording = true;
         // Iniciar un hilo para capturar el audio
         Thread captureThread = new Thread(() -> {
-            System.out.println("Recording...");
             CallSenderAudio callSenderAudio = new CallSenderAudio(datagramSocket);
             this.buffer = new byte[10240]; // Buffer de grabación
             while (isRecording) {
