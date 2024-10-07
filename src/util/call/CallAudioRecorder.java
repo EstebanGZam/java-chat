@@ -15,10 +15,11 @@ public class CallAudioRecorder {
     // Método para iniciar la grabación
     public void startSendingOfVoice(DatagramSocket datagramSocket, int serverPort) {
         initRecorder();
+        isRecording = true;
         // Iniciar un hilo para capturar el audio
         Thread captureThread = new Thread(() -> {
+            System.out.println("Recording...");
             CallSenderAudio callSenderAudio = new CallSenderAudio(datagramSocket);
-
             this.buffer = new byte[10240]; // Buffer de grabación
             while (isRecording) {
                 this.bytesRead = microphone.read(buffer, 0, buffer.length);

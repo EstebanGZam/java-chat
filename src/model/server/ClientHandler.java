@@ -401,6 +401,7 @@ public class ClientHandler implements Runnable {
 			int clientPort = Integer.parseInt(reader.readLine());
 			String clientInetAddress = reader.readLine();
 			call.addCallMember(new CallMember(call, username, socket, clientPort, clientInetAddress, isHost));
+			status = Status.ON_CALL;
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
